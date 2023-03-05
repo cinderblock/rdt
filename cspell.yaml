@@ -1,0 +1,22 @@
+version: '0.2'
+language: en
+ignorePaths:
+  - '**/*.svg'
+  - .vscode/extensions.json
+  - .git
+dictionaries:
+  - en_US
+  - filetypes
+  - names
+  - export
+  - words
+  - dependencies
+dictionaryDefinitions:
+  - name: dependencies
+    path: ./CSpell/dependencies.txt
+  - name: export
+    path: ./CSpell/export.txt
+  - name: names
+    path: ./CSpell/names.txt
+  - name: words
+    path: ./CSpell/words.txt

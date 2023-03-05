@@ -1,0 +1,40 @@
+{
+  "name": "thind",
+  "private": true,
+  "version": "0.0.0",
+  "description": "",
+  "main": ".dist/bin.js",
+  "scripts": {
+    "build": "esr dist/build.ts",
+    "run": "node --enable-source-maps .dist",
+    "start": "npm run build && npm run run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cinderblock/thind.git"
+  },
+  "keywords": [
+    "TypeScript",
+    "Node",
+    "Raspberry Pi",
+    "esbuild",
+    "thin client",
+    "remote development"
+  ],
+  "author": "Cameron Tacklind <cameron@tacklind.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cinderblock/thind/issues"
+  },
+  "homepage": "https://github.com/cinderblock/thind#readme",
+  "dependencies": {
+    "esbuild": "^0.17.10",
+    "yaml": "^2.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.2",
+    "esbuild-runner": "^2.2.2",
+    "eslint": "^8.35.0",
+    "prettier": "^2.8.4"
+  }
+}

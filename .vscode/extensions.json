@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "streetsidesoftware.code-spell-checker",
+    "hediet.vscode-drawio",
+    "editorconfig.editorconfig",
+    "dbaeumer.vscode-eslint",
+    "me-dutour-mathieu.vscode-github-actions",
+    "esbenp.prettier-vscode"
+  ]
+}

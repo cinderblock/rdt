@@ -1,0 +1,10 @@
+# Generated
+/coverage
+/.dist
+/node_modules
+/package-lock.json
+
+# No Parser
+.gitignore
+.editorconfig
+.prettierignore

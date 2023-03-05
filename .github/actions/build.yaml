@@ -1,0 +1,17 @@
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Publish
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        working-directory: .dist
+        run: npm publish
