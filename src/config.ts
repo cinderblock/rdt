@@ -4,7 +4,7 @@
  */
 
 import { readFile } from 'fs/promises';
-import { parse as yaml } from 'yaml';
+import { parse as parseYaml } from 'yaml';
 
 type BrowserOptions = {
   /**
@@ -12,30 +12,23 @@ type BrowserOptions = {
    *
    * Can be absolute or relative to `connection.user`'s home directory.
    *
-   * Defaults to `.thind/${name}/www`
+   * @default ${daemon.path}/www
    */
   path?: string;
 
   /**
-   * The path to the assets directory
+   * The path to the sources directory
+   *
+   * @default src/www
    */
-  assets?: string;
+  sources?: string;
 
   /**
-   * Should the browser bundle be served
+   * Should we serve the browser bundle locally when developing
+   *
+   * @default true
    */
-  serve:
-    | boolean
-    | {
-        /**
-         * Should we serve the browser bundle locally when developing
-         */
-        local: boolean;
-        /**
-         * Should we serve the browser bundle remotely
-         */
-        remote: boolean;
-      };
+  serveLocal?: boolean;
 };
 
 type DaemonOptions = {
@@ -44,24 +37,72 @@ type DaemonOptions = {
    *
    * Can be absolute or relative to `connection.user`'s home directory.
    *
-   * Defaults to `.thind/${name}`
+   * @default .thind/${name}
    */
   path?: string;
 
-  runtime?: {
-    /**
-     * The user to run the server as
-     *
-     * Defaults to `connection.user`
-     */
-    user?: string;
-    /**
-     * The group to run the server as
-     *
-     * Defaults to `connection.user`'s primary group
-     */
-    group?: string;
-  };
+  /**
+   * The path to the sources directory
+   *
+   * @default src
+   */
+  sources?: string;
+
+  /**
+   * Configuration for Systemd
+   */
+  systemd?:
+    | boolean
+    | {
+        /**
+         * The name of the service.
+         *
+         * Should not end in `.service`
+         *
+         * @default thind-${name}
+         */
+        serviceName?: string | undefined;
+
+        /**
+         * The description of the service
+         *
+         * @default "Daemon deployed by thind to ${name}"
+         */
+        description?: string | undefined;
+
+        /**
+         * The user to run the server as
+         *
+         * @default connection.user
+         */
+        user?: string | number | undefined;
+        /**
+         * The group to run the server as
+         *
+         * @default connection.user primary group
+         */
+        group?: string | number | undefined;
+
+        /**
+         * Should the daemon be started on boot
+         *
+         * @default true
+         */
+        enable?: boolean | undefined;
+
+        /**
+         * The environment variables to set
+         */
+        env?: Record<string, string> | undefined;
+
+        /**
+         * Run as a user service
+         *
+         * @default false
+         */
+        userService?: boolean | undefined;
+      }
+    | undefined;
 
   /**
    * Build settings for the daemon
@@ -70,62 +111,57 @@ type DaemonOptions = {
     /**
      * Should the daemon be minified
      *
-     * Defaults to `true`
+     * @default false
      */
-    minify?: boolean;
+    minify?: boolean | undefined;
     /**
      * Should we generate source maps
      *
-     * Defaults to `true`
+     * @default true
      */
-    sourcemap?: boolean;
+    sourceMaps?: boolean | undefined;
     /**
      * Should dependencies be bundled into the daemon or a list of dependencies to include
      */
-    bundle?: boolean | string[];
+    bundle?: boolean | string[] | undefined;
     /**
      * Dependencies to exclude from the bundle
      */
-    bundleExclude?: string[];
+    bundleExclude?: string[] | undefined;
   };
-
-  /**
-   * Should the daemon be started on boot
-   *
-   * Defaults to `true`
-   */
-  startOnBoot?: boolean;
 };
 
 type ConnectionOptions = {
   /**
-   * The host to connect to
+   * The host to connect to.
    *
-   * Defaults to `raspberrypi.local`
+   * May include a port after a colon (`:`) which will override `port`
+   *
+   * @default ${name}
    */
-  host: string;
+  host?: string | undefined;
   /**
    * The port to connect to
    *
-   * Defaults to `22`
+   * @default 22
    */
-  port?: number;
+  port?: number | undefined;
   /**
    * The username to connect with
    *
-   * Defaults to `pi`
+   * @default pi
    */
   user: string;
   /**
    * The password to connect with
    */
-  password?: string;
+  password?: string | undefined;
   /**
    * The private key to connect with
    *
-   * Defaults to `~/.ssh/id_rsa`
+   * @default ~/.ssh/id_rsa
    */
-  privateKey?: string;
+  privateKey?: string | undefined;
 };
 
 /**
@@ -135,12 +171,12 @@ export type Target = {
   /**
    * Should a browser bundle be built
    */
-  browser?: boolean | BrowserOptions;
+  browser?: boolean | BrowserOptions | undefined;
 
   /**
    * Settings for building the daemon
    */
-  daemon?: DaemonOptions;
+  daemon?: DaemonOptions | undefined;
 
   /**
    * Details for connecting to the remote server
@@ -150,7 +186,7 @@ export type Target = {
   /**
    * The ports to forward
    */
-  ports?: number[] | Map<number, number | true>;
+  ports?: number[] | Map<number, number | true> | undefined;
 };
 
 /**
@@ -169,7 +205,7 @@ export async function config(): Promise<Config> {
   // TODO: Check more directories?
 
   // Parse the file as YAML
-  const config = yaml(file.toString(), {
+  const config = parseYaml(file.toString(), {
     // Why not...
     prettyErrors: true,
 

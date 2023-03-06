@@ -123,28 +123,11 @@ export async function thind(name: string, target: Target) {
     uiStep = new BuildStep('Build UI Locally', buildUI);
     const transferUIStep = new BuildStep('Transfer UI', transferUI, { dependencies: [remote], triggersFrom: [uiStep] });
 
-    let serveLocal = false;
-    let serveRemote = false;
-    if (target.browser === true) {
-      serveLocal = true;
-      serveRemote = true;
-    } else if (target.browser.serve === true) {
-      serveLocal = true;
-      serveRemote = true;
-    } else if (target.browser.serve) {
-      if (target.browser.serve.local) serveLocal = true;
-      if (target.browser.serve.remote) serveRemote = true;
-    }
-
-    if (serveLocal) {
+    if (target.browser === true || (target.browser.serveLocal ?? true)) {
       const serveUIStep = new BuildStep('Serve UI Locally', serveUI, {
         dependencies: [portForwards],
         triggersFrom: [uiStep],
       });
-    }
-
-    if (serveRemote) {
-      // TODO: Add a step to setup systemd on the remote??
     }
   }
 
