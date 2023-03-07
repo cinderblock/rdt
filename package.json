@@ -3,8 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "description": "",
-  "main": ".dist/bin.js",
-  "bin": ".dist/bin.js",
+  "bin": ".dist/bundle.js",
+  "main": ".dist/bundle.js",
+  "types": ".dist/cli.d.ts",
+  "files": [
+    ".dist/*"
+  ],
   "scripts": {
     "build": "esr dist/build.ts",
     "run": "node --enable-source-maps .dist",
@@ -36,6 +40,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.14.2",
+    "esbuild-plugin-d.ts": "^1.1.0",
     "esbuild-runner": "^2.2.2",
     "eslint": "^8.35.0",
     "prettier": "^2.8.4"

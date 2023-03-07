@@ -1,6 +1,7 @@
 import { writeFile, mkdir, copyFile, rm } from 'fs/promises';
-import { build as esbuild } from 'esbuild';
+import { build as esbuild, Plugin } from 'esbuild';
 import { join } from 'path';
+import { dtsPlugin } from 'esbuild-plugin-d.ts';
 
 function forceExit() {
   setTimeout(() => {
@@ -36,13 +37,21 @@ process.on('uncaughtException', e => {
   forceExit();
 });
 
-export type Options = { distDir: string; bundleName: string };
+export type Options = {
+  distDir: string;
+  bundleName: string;
+  skipDts?: boolean;
+};
 
 export async function parseArgs(...args: string[]): Promise<Options> {
+  const skipDts = args.includes('--skip-dts');
+  if (skipDts) args.splice(args.indexOf('--skip-dts'), 1);
+
   const [distDir = '.dist', bundleName = 'bundle.js'] = args;
   return {
     distDir,
     bundleName,
+    skipDts,
   };
 }
 
@@ -70,9 +79,14 @@ async function readme({ distDir }: Options) {
   await copyFile('README.md', join(distDir, 'README.md'));
 }
 
+// Not really tested
 const outputESM = false;
 
-async function build({ distDir, bundleName }: Options) {
+async function build({ distDir, bundleName, skipDts }: Options) {
+  const plugins: Plugin[] = [];
+
+  if (!skipDts) plugins.push(dtsPlugin({ outDir: distDir }));
+
   const res = await esbuild({
     bundle: true,
     platform: 'node',
@@ -81,6 +95,7 @@ async function build({ distDir, bundleName }: Options) {
     sourcemap: true,
     outfile: join(distDir, bundleName),
     entryPoints: [join('src', 'cli.ts')],
+    plugins,
   });
 }
 
@@ -92,8 +107,9 @@ async function packageJson({ distDir, bundleName }: Options) {
   // Filter scripts and other unwanted parts
   const distPackageJson = {
     ...packageJson.default,
-    main: bundleName,
     bin: bundleName,
+    main: bundleName,
+    types: 'cli.d.ts',
     private: undefined,
     type: outputESM ? 'module' : undefined,
     scripts: {
