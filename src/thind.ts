@@ -19,7 +19,7 @@ class BuildStep<Result = unknown> {
    *
    * Updates the result property.
    */
-  readonly run: () => Promise<Result>;
+  readonly run: () => void;
 
   /**
    * The steps that must be notified when this step completes.
@@ -81,7 +81,6 @@ class BuildStep<Result = unknown> {
         return unitOfWork.bind(this)();
       }));
       this.triggers.forEach(subsequentStep => subsequentStep.run());
-      return this.result;
     };
   }
 
