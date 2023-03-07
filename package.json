@@ -4,10 +4,12 @@
   "version": "0.0.0",
   "description": "",
   "main": ".dist/bin.js",
+  "bin": ".dist/bin.js",
   "scripts": {
     "build": "esr dist/build.ts",
     "run": "node --enable-source-maps .dist",
-    "start": "npm run build && npm run run"
+    "start": "npm run build && npm run run",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",

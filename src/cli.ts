@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { thind, help as thindHelp, args as thindArgs } from './thind';
 
 if (require.main === module) {

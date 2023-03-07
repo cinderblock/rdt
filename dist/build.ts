@@ -93,6 +93,7 @@ async function packageJson({ distDir, bundleName }: Options) {
   const distPackageJson = {
     ...packageJson.default,
     main: bundleName,
+    bin: bundleName,
     private: undefined,
     type: outputESM ? 'module' : undefined,
     scripts: {
