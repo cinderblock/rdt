@@ -50,7 +50,7 @@ class BuildStep<Result = unknown> {
    */
   public description: string = '';
 
-  public result: Promise<Result>;
+  public result: Promise<Result> | undefined;
 
   constructor(
     /**
@@ -87,11 +87,13 @@ class BuildStep<Result = unknown> {
       // - cancel it, maybe
       // - make the old promise resolve to the new result
 
-      const r = (this.result = Promise.all(this.dependencies.map(dependency => dependency.result)).then(() => {
+      const r: Promise<Result> = (this.result = Promise.all(
+        this.dependencies.map(dependency => dependency.result),
+      ).then(() => {
         if (this.result !== r) {
           // Step has been re-triggered before being run. Return the new result.
           console.log('Skipping:', this.name);
-          return this.result;
+          return this.result!;
         }
         console.log('Running:', this.name);
         return unitOfWork.bind(this)();
@@ -197,62 +199,62 @@ export async function thind(name: string, target: Target) {
     triggersFrom: [installStep, transferServerStep],
   });
 
-  async function buildServer() {
+  async function buildServer(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function buildUI() {
+  async function buildUI(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function connectToRemote() {
+  async function connectToRemote(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000 + 3000));
     console.log(this.name);
   }
 
-  async function transferUI() {
+  async function transferUI(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function serveUI() {
+  async function serveUI(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function transferServer() {
+  async function transferServer(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function forwardPorts() {
+  async function forwardPorts(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function setupSystemd() {
+  async function setupSystemd(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function outputMonitor() {
+  async function outputMonitor(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function transferPackageJson() {
+  async function transferPackageJson(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function install() {
+  async function install(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
 
-  async function start() {
+  async function start(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
     console.log(this.name);
   }
