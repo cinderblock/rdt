@@ -101,6 +101,16 @@ class BuildStep<Result = unknown> {
       // Note: doesn't check for deeper cycles...
     }
 
+    if (this.dependencies.includes(dependency)) {
+      // This step already depends on the dependency. No need to add it again if everything is working correctly.
+      if (dependency.dependents.includes(this)) {
+        console.log('Removing duplicate dependency:', this.name, '->', dependency.name);
+        return;
+      }
+
+      throw new Error('Dependency chain is broken. Something is very wrong.');
+    }
+
     dependency.dependents.push(this as BuildStep);
     this.dependencies.push(dependency);
   }
