@@ -4,7 +4,11 @@ import { context as esbuild } from 'esbuild';
 export async function help(...args: string[]) {}
 
 export async function args(...args: string[]): Promise<[string, Target]> {
-  const { targets } = await config();
+  const conf = await config();
+
+  if (!conf) throw new Error('Config empty!');
+
+  const { targets } = conf;
   const selected = args[0] || Object.keys(targets)[0];
   return [selected, targets[selected]];
 }
@@ -105,6 +109,10 @@ function watchForPackageChanges(triggers: BuildStep) {
 
 export async function thind(name: string, target: Target) {
   // See docs/diagram.drawio.svg for a diagram of the build DAG
+  if (!target) target = {};
+
+  if (target.browser === undefined) target.browser = true;
+  if (target.browser === true) target.browser = {};
 
   const server = new BuildStep('Build Server Locally', buildServer);
 
@@ -123,7 +131,7 @@ export async function thind(name: string, target: Target) {
     uiStep = new BuildStep('Build UI Locally', buildUI);
     const transferUIStep = new BuildStep('Transfer UI', transferUI, { dependencies: [remote], triggersFrom: [uiStep] });
 
-    if (target.browser === true || (target.browser.serveLocal ?? true)) {
+    if (target.browser.serveLocal ?? true) {
       const serveUIStep = new BuildStep('Serve UI Locally', serveUI, {
         dependencies: [portForwards],
         triggersFrom: [uiStep],

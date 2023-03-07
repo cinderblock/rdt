@@ -151,7 +151,7 @@ type ConnectionOptions = {
    *
    * @default pi
    */
-  user: string;
+  user?: string;
   /**
    * The password to connect with
    */
@@ -167,7 +167,7 @@ type ConnectionOptions = {
 /**
  * The config type of a single target
  */
-export type Target = {
+export type Target = null | {
   /**
    * Should a browser bundle be built
    */
@@ -181,7 +181,7 @@ export type Target = {
   /**
    * Details for connecting to the remote server
    */
-  connection: ConnectionOptions;
+  connection?: ConnectionOptions;
 
   /**
    * The ports to forward
