@@ -34,6 +34,9 @@ class BuildStep<Result = unknown> {
    */
   private triggers: BuildStep[] = [];
 
+  /**
+   * A longer description of the step.
+   */
   public description: string = '';
 
   public result: Promise<Result>;
