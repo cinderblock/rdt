@@ -71,6 +71,11 @@ class BuildStep<Result = unknown> {
     // TODO: Check for duplicate dependencies. Maybe use a Set?
 
     this.run = () => {
+      const oldResult = this.result;
+      // TODO: if oldResult is pending, somehow:
+      // - cancel it, maybe
+      // - make the old promise resolve to the new result
+
       const r = (this.result = Promise.all(this.dependencies.map(dependency => dependency.result)).then(() => {
         if (this.result !== r) {
           // Step has been re-triggered before being run. Return the new result.
