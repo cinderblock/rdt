@@ -85,16 +85,14 @@ class BuildStep<Result = unknown> {
     };
   }
 
-  public addDependency(dependency: BuildStep) {
+  private addDependency(dependency: BuildStep) {
     dependency.dependents.push(this as BuildStep);
     this.dependencies.push(dependency);
-    return this;
   }
 
-  public triggerFrom(parent: BuildStep) {
+  private triggerFrom(parent: BuildStep) {
     parent.triggers.push(this as BuildStep);
     this.addDependency(parent);
-    return this;
   }
 }
 
@@ -126,7 +124,7 @@ export async function thind(name: string, target: Target) {
     triggersFrom: [server],
   });
 
-  const portForwards = new BuildStep('Forward Ports', forwardPorts).triggerFrom(remote);
+  const portForwards = new BuildStep('Forward Ports', forwardPorts, { triggersFrom: [remote] });
 
   let uiStep: BuildStep | undefined;
 
