@@ -90,6 +90,17 @@ class BuildStep<Result = unknown> {
   }
 
   private addDependency(dependency: BuildStep) {
+    // Might as well check for this now...
+    if (dependency === this) {
+      throw new Error('A step cannot depend on itself.');
+    }
+
+    // This test should not be needed because of how steps are initialized, but just in case...
+    if (dependency.dependencies.includes(this)) {
+      throw new Error('A step cannot depend on a step that depends on it.');
+      // Note: doesn't check for deeper cycles...
+    }
+
     dependency.dependents.push(this as BuildStep);
     this.dependencies.push(dependency);
   }
