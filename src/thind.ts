@@ -71,7 +71,7 @@ class BuildStep<Result = unknown> {
     // TODO: Check for duplicate dependencies. Maybe use a Set?
 
     this.run = () => {
-      const r = (this.result = Promise.all(this.dependencies.map(step => step.result)).then(() => {
+      const r = (this.result = Promise.all(this.dependencies.map(dependency => dependency.result)).then(() => {
         if (this.result !== r) {
           // Step has been re-triggered before being run. Return the new result.
           console.log('Skipping:', this.name);
