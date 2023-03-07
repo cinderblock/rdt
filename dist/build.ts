@@ -49,7 +49,7 @@ export async function parseArgs(...args: string[]): Promise<Options> {
 export async function main(options: Options) {
   const { distDir } = options;
   // TODO: check before removing??
-  await rm(distDir, { recursive: true });
+  await rm(distDir, { recursive: true }).catch(() => {});
   await mkdir(distDir, { recursive: true });
 
   await Promise.all([
