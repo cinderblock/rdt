@@ -197,6 +197,11 @@ export type Config = {
    * The targets to build
    */
   targets: { [name: string]: Target };
+
+  /**
+   * Shared settings for all targets
+   */
+  shared?: Target;
 };
 
 export async function config(): Promise<Config> {

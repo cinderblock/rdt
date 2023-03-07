@@ -1,4 +1,5 @@
 import { config, Target } from './config';
+import merge from 'ts-deepmerge';
 import { context as esbuild } from 'esbuild';
 
 export async function help(...args: string[]) {
@@ -14,11 +15,13 @@ export async function help(...args: string[]) {
 export async function args(...args: string[]): Promise<[string, Target]> {
   const conf = await config();
 
-  if (!conf) throw new Error('Config empty!');
-
-  const { targets } = conf;
+  const targets = conf?.targets || {};
   const selected = args[0] || Object.keys(targets)[0];
-  return [selected, targets[selected]];
+
+  if (!selected) {
+    throw new Error('No targets defined or selected');
+  }
+  return [selected, merge(conf?.shared ?? {}, targets[selected] ?? {})];
 }
 
 class BuildStep<Result = unknown> {
