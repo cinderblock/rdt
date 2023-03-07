@@ -1,7 +1,15 @@
 import { config, Target } from './config';
 import { context as esbuild } from 'esbuild';
 
-export async function help(...args: string[]) {}
+export async function help(...args: string[]) {
+  console.log('Usage: thind dev [target-name]');
+  console.log('  target-name: The name of the target to build for');
+  console.log('               If omitted, the first target is used');
+  console.log("               Creates a temporary target if it doesn't match any existing targets");
+  console.log('Example:');
+  console.log('  $ thind dev');
+  console.log('  $ thind dev my-target # Connects to my-target as hostname unless it matches an existing target');
+}
 
 export async function args(...args: string[]): Promise<[string, Target]> {
   const conf = await config();
