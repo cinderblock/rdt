@@ -6,20 +6,20 @@ export { thind } from './thind';
 export { default as EventHandler } from './EventHandler';
 
 if (require.main === module) {
-  cli(...process.argv.slice(2)).then(
-    () => {
-      console.log('Normal exit');
-      setTimeout(() => {
-        console.log('Forcing exit');
-        process.exit(2);
-      }, 1000).unref();
-    },
-    e => {
+  cli(...process.argv.slice(2))
+    .then(() => console.log('Normal exit'))
+    .catch(e => {
       console.error('Uncaught error:');
       console.error(e);
-      process.exitCode = 1;
-    },
-  );
+      process.exitCode = 2;
+    })
+    .then(() => console.log('Done running...'))
+    .then(() =>
+      setTimeout(() => {
+        console.log('Forcing exit');
+        process.exit((process.exitCode ?? 0) + 1);
+      }, 1000).unref(),
+    );
 }
 
 export async function cli(...args: string[]) {
