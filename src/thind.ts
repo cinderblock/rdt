@@ -1,6 +1,7 @@
 import { config, Target } from './config';
 import merge from 'ts-deepmerge';
 import { context as esbuild } from 'esbuild';
+import logger from './log';
 
 export async function help(...args: string[]) {
   console.log('Usage: thind dev [target-name]');
@@ -92,10 +93,10 @@ class BuildStep<Result = unknown> {
       ).then(() => {
         if (this.result !== r) {
           // Step has been re-triggered before being run. Return the new result.
-          console.log('Skipping:', this.name);
+          logger.log('debug', 'Skipping:', this.name);
           return this.result!;
         }
-        console.log('Running:', this.name);
+        logger.log('info', 'Running:', this.name);
         return unitOfWork.bind(this)();
       }));
       this.triggers.forEach(subsequentStep => subsequentStep.run());
@@ -117,7 +118,7 @@ class BuildStep<Result = unknown> {
     if (this.dependencies.includes(dependency)) {
       // This step already depends on the dependency. No need to add it again if everything is working correctly.
       if (dependency.dependents.includes(this)) {
-        console.log('Removing duplicate dependency:', this.name, '->', dependency.name);
+        logger.log('debug', 'Removing duplicate dependency:', this.name, '->', dependency.name);
         return;
       }
 
@@ -204,62 +205,62 @@ export async function thind(name: string, target: Target) {
 
   async function buildServer(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function buildUI(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function connectToRemote(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000 + 3000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function transferUI(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function serveUI(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function transferServer(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function forwardPorts(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function setupSystemd(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function outputMonitor(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function transferPackageJson(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function install(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   async function start(this: BuildStep) {
     await new Promise(r => setTimeout(r, Math.random() * 1000));
-    console.log(this.name);
+    logger.log('warn', this.name);
   }
 
   remote.run();
@@ -269,11 +270,11 @@ export async function thind(name: string, target: Target) {
   uiStep && watchForUIChanges(uiStep);
 
   await startStep.result;
-  console.log('Done');
+  logger.log('debug', 'Done');
 
   await new Promise(r => setTimeout(r, 3000));
 
   watchForServerChanges(server);
   await startStep.result;
-  console.log('Done2');
+  logger.log('debug', 'Done2');
 }

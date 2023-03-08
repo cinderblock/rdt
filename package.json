@@ -38,6 +38,7 @@
     "esbuild-register": "^3.4.2",
     "ssh2-promise": "^1.0.3",
     "ts-deepmerge": "^6.0.2",
+    "winston": "^3.8.2",
     "yaml": "^2.2.1"
   },
   "devDependencies": {
