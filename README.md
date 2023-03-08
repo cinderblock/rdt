@@ -7,6 +7,9 @@ Use your high performance development machine to build and serve your project to
 `thind` watches your project directory for changes and, on change, builds your project and sends the build output to your remote host for execution.
 `thind` also runs a web server on your development machine for a fast local UI experience with easy connection to the real backend through integrated port forwarding.
 
+Thind is still in early development.
+The API and configuration format might change.
+
 ## Installation
 
 `npm install -D thind`
@@ -20,6 +23,7 @@ Create a file `thind.yaml` in the root of your project.
 ```yaml
 targets:
   myPi:
+    # !!! NOT UP TO DATE !!!
     browser:
       path: .thind/myPi/www
       sources: src/www
