@@ -6,132 +6,76 @@
 import { readFile } from 'fs/promises';
 import { parse as parseYaml } from 'yaml';
 
-type BrowserOptions = {
+type DevServerOptions = {
   /**
-   * The path on the server to deploy to.
-   *
-   * Can be absolute or relative to `connection.user`'s home directory.
-   *
-   * @default ${daemon.path}/www
+   * The path to the entry file(s) for the browser.
    */
-  path?: string;
+  entry: string | string[];
 
   /**
-   * The path to the sources directory
+   * Should we serve other browser files locally?
    *
-   * @default src/www
+   * If so, what directory should we serve from?
+   *
+   * @default src/www (true or undefined)
    */
-  sources?: string;
+  serveLocal?: boolean | string | undefined;
+};
+
+/**
+ * Configuration for Systemd
+ */
+type SystemdOptions = {
+  /**
+   * The name of the service.
+   *
+   * Should not end in `.service`
+   *
+   * @default thind-${name}
+   */
+  serviceName?: string | undefined;
 
   /**
-   * Should we serve the browser bundle locally when developing
+   * The description of the service
+   *
+   * @default "Daemon deployed by thind to ${name}"
+   */
+  description?: string | undefined;
+
+  /**
+   * The user to run the server as
+   *
+   * @default connection.user
+   */
+  user?: string | number | undefined;
+  /**
+   * The group to run the server as
+   *
+   * @default connection.user primary group
+   */
+  group?: string | number | undefined;
+
+  /**
+   * Should the daemon be started on boot
    *
    * @default true
    */
-  serveLocal?: boolean;
+  enable?: boolean | undefined;
+
+  /**
+   * The environment variables to set
+   */
+  env?: Record<string, string> | undefined;
+
+  /**
+   * Run as a user service
+   *
+   * @default false
+   */
+  userService?: boolean | undefined;
 };
 
-type DaemonOptions = {
-  /**
-   * The path on the server to deploy to.
-   *
-   * Can be absolute or relative to `connection.user`'s home directory.
-   *
-   * @default .thind/${name}
-   */
-  path?: string;
-
-  /**
-   * The path to the sources directory
-   *
-   * @default src
-   */
-  sources?: string;
-
-  /**
-   * Configuration for Systemd
-   */
-  systemd?:
-    | boolean
-    | {
-        /**
-         * The name of the service.
-         *
-         * Should not end in `.service`
-         *
-         * @default thind-${name}
-         */
-        serviceName?: string | undefined;
-
-        /**
-         * The description of the service
-         *
-         * @default "Daemon deployed by thind to ${name}"
-         */
-        description?: string | undefined;
-
-        /**
-         * The user to run the server as
-         *
-         * @default connection.user
-         */
-        user?: string | number | undefined;
-        /**
-         * The group to run the server as
-         *
-         * @default connection.user primary group
-         */
-        group?: string | number | undefined;
-
-        /**
-         * Should the daemon be started on boot
-         *
-         * @default true
-         */
-        enable?: boolean | undefined;
-
-        /**
-         * The environment variables to set
-         */
-        env?: Record<string, string> | undefined;
-
-        /**
-         * Run as a user service
-         *
-         * @default false
-         */
-        userService?: boolean | undefined;
-      }
-    | undefined;
-
-  /**
-   * Build settings for the daemon
-   */
-  build?: {
-    /**
-     * Should the daemon be minified
-     *
-     * @default false
-     */
-    minify?: boolean | undefined;
-    /**
-     * Should we generate source maps
-     *
-     * @default true
-     */
-    sourceMaps?: boolean | undefined;
-    /**
-     * Should dependencies be bundled into the daemon or a list of dependencies to include
-     */
-    bundle?: boolean | string[] | undefined;
-    /**
-     * Dependencies to exclude from the bundle
-     */
-    bundleExclude?: string[] | undefined;
-  };
-};
-
-type ConnectionOptions = {
+type RemoteOptions = {
   /**
    * The host to connect to.
    *
@@ -162,6 +106,15 @@ type ConnectionOptions = {
    * @default ~/.ssh/id_rsa
    */
   privateKey?: string | undefined;
+
+  /**
+   * The path on the server to deploy to.
+   *
+   * Can be absolute or relative to `connection.user`'s home directory.
+   *
+   * @default .thind/${name}
+   */
+  path?: string;
 };
 
 /**
@@ -169,24 +122,48 @@ type ConnectionOptions = {
  */
 export type Target = null | {
   /**
-   * Should a browser bundle be built
+   * File that default exports a class that extends the `EventHandler` class
+   *
+   * Events are:
+   *  - afterConnected
+   *  - afterDisconnected
+   *  - onFile
+   *  - afterDeployed
    */
-  browser?: boolean | BrowserOptions | undefined;
+  eventHandler?: string;
 
   /**
-   * Settings for building the daemon
+   * Should a browser bundle be built, served, and deployed
    */
-  daemon?: DaemonOptions | undefined;
+  devServer?: boolean | DevServerOptions | undefined;
 
   /**
    * Details for connecting to the remote server
    */
-  connection?: ConnectionOptions;
+  remote?: RemoteOptions;
 
   /**
    * The ports to forward
    */
   ports?: number[] | Map<number, number | true> | undefined;
+
+  /**
+   * esbuild settings for files
+   */
+  esbuild?: {
+    /**
+     * Should the built files be minified
+     *
+     * @default false
+     */
+    minify?: boolean | undefined;
+    /**
+     * Should we generate source maps
+     *
+     * @default true
+     */
+    sourceMaps?: boolean | undefined;
+  };
 };
 
 /**
@@ -194,9 +171,15 @@ export type Target = null | {
  */
 export type Config = {
   /**
+   * The version of the config file
+   * @current v0.0
+   */
+  version?: string | undefined;
+
+  /**
    * The targets to build
    */
-  targets: { [name: string]: Target };
+  targets?: { [name: string]: Target };
 
   /**
    * Shared settings for all targets

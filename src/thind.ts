@@ -150,8 +150,11 @@ export async function thind(name: string, target: Target) {
   // See docs/diagram.drawio.svg for a diagram of the build DAG
   if (!target) target = {};
 
-  if (target.browser === undefined) target.browser = true;
-  if (target.browser === true) target.browser = {};
+  if (target.devServer === undefined) target.devServer = true;
+  if (target.devServer === true)
+    target.devServer = {
+      entry: 'src/www/index.ts',
+    };
 
   const server = new BuildStep('Build Server Locally', buildServer);
 
@@ -166,11 +169,11 @@ export async function thind(name: string, target: Target) {
 
   let uiStep: BuildStep | undefined;
 
-  if (target.browser) {
+  if (target.devServer) {
     uiStep = new BuildStep('Build UI Locally', buildUI);
     const transferUIStep = new BuildStep('Transfer UI', transferUI, { dependencies: [remote], triggersFrom: [uiStep] });
 
-    if (target.browser.serveLocal ?? true) {
+    if (target.devServer.serveLocal ?? true) {
       const serveUIStep = new BuildStep('Serve UI Locally', serveUI, {
         dependencies: [portForwards],
         triggersFrom: [uiStep],

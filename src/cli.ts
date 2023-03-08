@@ -2,6 +2,9 @@
 
 import { thind, help as thindHelp, args as thindArgs } from './thind';
 
+export { thind } from './thind';
+export { default as EventHandler } from './EventHandler';
+
 if (require.main === module) {
   cli(...process.argv.slice(2)).then(
     () => {
@@ -30,12 +33,12 @@ export async function cli(...args: string[]) {
       return thind(...(await thindArgs(...rest)));
     case 'dev2':
       return thind('dev2', {
-        connection: {
+        remote: {
           host: 'raspberrypi.local',
           user: 'pi',
           privateKey: 'C:\\Users\\james\\.ssh\\id_rsa',
         },
-        browser: true,
+        devServer: true,
         ports: [3000],
         // ports: new Map([[3000, true]]),
       });
