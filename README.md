@@ -12,7 +12,10 @@ The API and configuration format might change.
 
 ## Installation
 
-`npm install -D thind`
+```bash
+npm install -D thind                # Npm package
+npm install -D cinderblock/thind    # Github repository
+```
 
 ## Usage
 
@@ -62,7 +65,25 @@ targets:
 ### `thind dev [target]` - Start the development server
 
 ```
-thind dev         # Run first target in thind.yaml
-thind dev myPi    # Run target: myPi
-thind dev otherPi # Run target: otherPi
+npx thind dev         # Run first target in thind.yaml
+npx thind dev myPi    # Run target: myPi
+npx thind dev otherPi # Run target: otherPi
+```
+
+Use `npx` or directly in `package.json` scripts without `npx`:
+
+```json
+{
+  // ...
+  "scripts": {
+    "dev": "thind dev"
+  }
+  // ...
+}
+```
+
+```
+npm run dev
+npm run dev -- myPi
+npm run dev -- otherPi
 ```
