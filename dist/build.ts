@@ -1,38 +1,54 @@
 import { writeFile, mkdir, copyFile, rm } from 'fs/promises';
-import { build as esbuild, Plugin } from 'esbuild';
+import winston from 'winston';
+import esbuild from 'esbuild';
 import { join } from 'path';
 import { dtsPlugin } from 'esbuild-plugin-d.ts';
 
+const logger = winston.createLogger({
+  level: 'debug',
+  format: winston.format.json(),
+  // defaultMeta: { service: 'thind-dist-build' },
+  transports: [
+    // Write all logs with importance level of `error` or less to `error.log`
+    // new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    // Write all logs with importance level of `info` or less to `combined.log`
+    // new winston.transports.File({ filename: 'combined.log' }),
+
+    new winston.transports.Console({
+      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+    }),
+  ],
+});
+
 function forceExit() {
   setTimeout(() => {
-    console.log('Something is still running. Forcing exit.');
+    logger.warn('Something is still running. Forcing exit.');
     process.exit(2);
   }, 1).unref();
 }
 
 function handleError(e: any) {
-  console.error('Error:');
-  console.error(e);
+  logger.error(e);
   process.exitCode = 1;
 }
 
 if (require.main === module) {
   parseArgs(...process.argv.slice(2))
     .then(main)
-    .then(() => console.log('Build exited normally'))
+    .then(() => logger.info('Build exited normally'))
     .then(forceExit)
     .catch(handleError);
 }
 
 process.on('unhandledRejection', e => {
-  console.error('Unhandled rejection:');
-  console.error(e);
+  logger.error('Unhandled rejection:');
+  logger.error(e);
   process.exitCode = 2;
   forceExit();
 });
 process.on('uncaughtException', e => {
-  console.error('Uncaught exception:');
-  console.error(e);
+  logger.error('Uncaught exception:');
+  logger.error(e);
   process.exitCode = 2;
   forceExit();
 });
@@ -41,17 +57,26 @@ export type Options = {
   distDir: string;
   bundleName: string;
   skipDts?: boolean;
+  watch?: boolean;
 };
 
+async function extractNamedFlag(args: string[], name: string): Promise<boolean> {
+  const index = args.indexOf(name);
+  if (index === -1) return false;
+  args.splice(index, 1);
+  return true;
+}
+
 export async function parseArgs(...args: string[]): Promise<Options> {
-  const skipDts = args.includes('--skip-dts');
-  if (skipDts) args.splice(args.indexOf('--skip-dts'), 1);
+  const skipDts = await extractNamedFlag(args, '--skip-dts');
+  const watch = await extractNamedFlag(args, '--watch');
 
   const [distDir = '.dist', bundleName = 'bundle.js'] = args;
   return {
     distDir,
     bundleName,
     skipDts,
+    watch,
   };
 }
 
@@ -75,19 +100,30 @@ export async function main(options: Options) {
   ]);
 }
 
-async function readme({ distDir }: Options) {
+async function readme({ distDir, watch }: Options) {
   await copyFile('README.md', join(distDir, 'README.md'));
+
+  if (watch) logger.warn('Watching README.md for changes is not (yet) implemented');
 }
 
 // Not really tested
 const outputESM = false;
 
-async function build({ distDir, bundleName, skipDts }: Options) {
-  const plugins: Plugin[] = [];
+async function build({ distDir, bundleName, skipDts, watch }: Options) {
+  const plugins: esbuild.Plugin[] = [];
+  const watchPlugin: esbuild.Plugin = {
+    name: 'end Event Plugin',
+    setup(build) {
+      build.onEnd(() => {
+        logger.info('Build finished');
+      });
+    },
+  };
 
+  if (watch) plugins.push(watchPlugin);
   if (!skipDts) plugins.push(dtsPlugin({ outDir: distDir }));
 
-  const res = await esbuild({
+  const buildOpts: esbuild.BuildOptions = {
     bundle: true,
     platform: 'node',
     target: 'node14',
@@ -97,10 +133,26 @@ async function build({ distDir, bundleName, skipDts }: Options) {
     entryPoints: [join('src', 'cli.ts')],
     plugins,
     external: ['esbuild'],
+  };
+
+  if (!watch) return await esbuild.build(buildOpts);
+
+  const ctx = await esbuild.context(buildOpts);
+  await ctx.watch({});
+  logger.info('Watching for changes... (Press Ctrl-C to exit)');
+
+  // CTRL-C
+  await new Promise<void>(resolve => process.once('SIGINT', resolve));
+  // Unfortunately no good solution for Windows with: "Terminate batch job (Y/N)?"
+
+  logger.info('Stopping watch...');
+
+  await ctx.dispose().catch(() => {
+    logger.warn('Failed to dispose esbuild context');
   });
 }
 
-async function packageJson({ distDir, bundleName }: Options) {
+async function packageJson({ distDir, bundleName, watch }: Options) {
   // Load local `package.json` with `import()`
   // import path is relative to current source file. Other paths are relative to `cwd` (normally project root)
   const packageJson = await import('../package.json');
@@ -122,4 +174,6 @@ async function packageJson({ distDir, bundleName }: Options) {
 
   // Write to `dist/package.json`
   await writeFile(join(distDir, 'package.json'), JSON.stringify(distPackageJson, null, 2));
+
+  if (watch) logger.warn('Watching package.json for changes is not (yet) implemented');
 }
