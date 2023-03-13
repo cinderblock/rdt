@@ -3,8 +3,8 @@
 import logger from './log';
 import { thind, help as thindHelp, args as thindArgs } from './thind';
 
-export { thind } from './thind';
-export { default as EventHandler } from './EventHandler';
+// Since this is also the main import, export the important stuff
+export { thind, makeEventHandler, BuildResult } from './thind';
 
 if (require.main === module) {
   cli(...process.argv.slice(2))

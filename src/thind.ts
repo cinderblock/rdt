@@ -1,7 +1,10 @@
 import { config, Target } from './config';
 import merge from 'ts-deepmerge';
-import { context as esbuild } from 'esbuild';
+import { register } from 'esbuild-register/dist/node';
 import logger from './log';
+import { relativeToProjectRoot } from './util/relativeToProjectRoot';
+
+export { makeEventHandler, BuildResult } from './EventHandler';
 
 export async function help(...args: string[]) {
   console.log('Usage: thind dev [target-name]');
@@ -156,6 +159,18 @@ export async function thind(name: string, target: Target) {
     target.devServer = {
       entry: 'src/www/index.ts',
     };
+
+  if (target.eventHandler) {
+    const { unregister } = register({
+      // TODO: Options?
+    });
+
+    const path = relativeToProjectRoot(target.eventHandler);
+    logger.info(`Event Handler Path: ${path}`);
+
+    const eh = await import(path);
+    logger.info('Using event handler!!!');
+  }
 
   const server = new BuildStep('Build Server Locally', buildServer);
 

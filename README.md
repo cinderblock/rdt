@@ -87,3 +87,31 @@ npm run dev
 npm run dev -- myPi
 npm run dev -- otherPi
 ```
+
+## Event Handler
+
+You must define event handlers to actually do anything useful.
+
+Example handlers for various setups are provided in the `examples` directory.
+
+A minimal event handler is:
+
+```ts
+import { makeEventHandler, BuildResult } from 'thind';
+
+makeEventHandler({
+  async afterConnected(options) {
+    console.log('connected:', options.targetName);
+    console.log(options.targetConfig);
+
+    // Setup dependencies n remote that are required to run the app
+    await options.connection.exec('npm install');
+  },
+
+  async afterDisconnected(options) {},
+
+  async onFile(options): Promise<BuildResult> {},
+
+  async afterDeployed(options) {},
+});
+```

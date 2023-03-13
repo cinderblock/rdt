@@ -96,6 +96,7 @@ async function build({ distDir, bundleName, skipDts }: Options) {
     outfile: join(distDir, bundleName),
     entryPoints: [join('src', 'cli.ts')],
     plugins,
+    external: ['esbuild'],
   });
 }
 
