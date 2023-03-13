@@ -8,16 +8,16 @@ export { default as EventHandler } from './EventHandler';
 
 if (require.main === module) {
   cli(...process.argv.slice(2))
-    .then(() => logger.log('debug', 'Normal exit'))
+    .then(() => logger.debug('Normal exit'))
     .catch(e => {
       console.error('Uncaught error:');
       console.error(e);
       process.exitCode = 2;
     })
-    .then(() => logger.log('debug', 'Done running...'))
+    .then(() => logger.debug('Done running...'))
     .then(() =>
       setTimeout(() => {
-        logger.log('warn', 'Forcing exit');
+        logger.warn('Forcing exit');
         process.exit((process.exitCode ?? 0) + 1);
       }, 1000).unref(),
     );
