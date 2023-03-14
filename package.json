@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.0.0",
   "description": "",
-  "bin": ".dist/bundle.js",
-  "main": ".dist/bundle.js",
+  "bin": ".dist/cli.js",
+  "main": ".dist/cli.js",
   "types": ".dist/cli.d.ts",
   "files": [
     ".dist/*"

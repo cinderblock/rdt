@@ -1,4 +1,4 @@
-import { writeFile, mkdir, copyFile, rm } from 'fs/promises';
+import { writeFile, mkdir, copyFile, rm, readdir } from 'fs/promises';
 import winston from 'winston';
 import esbuild from 'esbuild';
 import { join } from 'path';
@@ -71,7 +71,7 @@ export async function parseArgs(...args: string[]): Promise<Options> {
   const skipDts = await extractNamedFlag(args, '--skip-dts');
   const watch = await extractNamedFlag(args, '--watch');
 
-  const [distDir = '.dist', bundleName = 'bundle.js'] = args;
+  const [distDir = '.dist', bundleName = 'cli.js'] = args;
   return {
     distDir,
     bundleName,
@@ -109,7 +109,7 @@ async function readme({ distDir, watch }: Options) {
 // Not really tested
 const outputESM = false;
 
-async function build({ distDir, bundleName, skipDts, watch }: Options) {
+async function build({ distDir: outDir, bundleName, skipDts, watch }: Options) {
   const plugins: esbuild.Plugin[] = [];
   const watchPlugin: esbuild.Plugin = {
     name: 'end Event Plugin',
@@ -121,18 +121,28 @@ async function build({ distDir, bundleName, skipDts, watch }: Options) {
   };
 
   if (watch) plugins.push(watchPlugin);
-  if (!skipDts) plugins.push(dtsPlugin({ outDir: distDir }));
+  if (!skipDts) plugins.push(dtsPlugin({ outDir }));
 
   const buildOpts: esbuild.BuildOptions = {
-    bundle: true,
     platform: 'node',
     target: 'node14',
     format: outputESM ? 'esm' : 'cjs',
     sourcemap: true,
-    outfile: join(distDir, bundleName),
-    entryPoints: [join('src', 'cli.ts')],
     plugins,
+    outdir: outDir,
+    bundle: true,
+    entryPoints: [join('src', 'cli.ts')],
     external: ['esbuild'],
+  };
+
+  const buildAllOpts: esbuild.BuildOptions = {
+    platform: 'node',
+    target: 'node14',
+    format: outputESM ? 'esm' : 'cjs',
+    sourcemap: true,
+    plugins,
+    outdir: outDir,
+    entryPoints: await readdir('src').then(files => files.filter(f => f.endsWith('.ts')).map(f => join('src', f))),
   };
 
   if (!watch) return await esbuild.build(buildOpts);
@@ -165,9 +175,7 @@ async function packageJson({ distDir, bundleName, watch }: Options) {
     types: 'cli.d.ts',
     private: undefined,
     type: outputESM ? 'module' : undefined,
-    scripts: {
-      start: 'node .',
-    },
+    scripts: { start: 'node .' },
     devDependencies: undefined,
     // peerDependencies: undefined,
   };

@@ -4,6 +4,7 @@ parens
 raspberrypi
 
 outfile
+outdir
 
 drawio
 
