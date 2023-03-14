@@ -151,6 +151,8 @@ function watchForPackageChanges(triggers: BuildStep) {
 }
 
 export async function thind(name: string, target: Target) {
+  logger.info(`Thind Target: ${name}`);
+
   // See docs/diagram.drawio.svg for a diagram of the build DAG
   if (!target) target = {};
 
@@ -166,7 +168,7 @@ export async function thind(name: string, target: Target) {
     });
 
     const path = relativeToProjectRoot(target.eventHandler);
-    logger.info(`Event Handler Path: ${path}`);
+    logger.debug(`Event Handler Path: ${path}`);
 
     const eh = await import(path);
     logger.info('Using event handler!!!');
