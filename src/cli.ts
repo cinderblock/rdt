@@ -6,8 +6,21 @@ import { thind, help as thindHelp, args as thindArgs } from './thind';
 // Since this is also the main import, export the important stuff
 export { thind, makeEventHandler, BuildResult } from './thind';
 
+function getArgs() {
+  const args = process.argv.slice(2);
+
+  const loader = args.indexOf('--loader');
+
+  if (loader !== -1) {
+    logger.error('loader arg included!');
+    throw new Error('loader arg included');
+  }
+
+  return args;
+}
+
 if (require.main === module) {
-  cli(...process.argv.slice(2))
+  cli(...getArgs())
     .then(() => logger.debug('Normal exit'))
     .catch(e => {
       logger.error('Uncaught error:');
