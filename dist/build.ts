@@ -175,6 +175,7 @@ async function packageJson({ distDir, bundleName, watch }: Options) {
     types: 'cli.d.ts',
     private: undefined,
     type: outputESM ? 'module' : undefined,
+    files: undefined,
     scripts: { start: 'node .' },
     devDependencies: undefined,
     // peerDependencies: undefined,
