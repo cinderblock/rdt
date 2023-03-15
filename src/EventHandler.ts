@@ -1,5 +1,5 @@
-import { Target } from './config';
 import SSH2Promise from 'ssh2-promise';
+import { Target } from './config';
 
 export type HandledInternallyResult = true;
 export type BlobResult = Buffer;
@@ -29,12 +29,7 @@ type ConnectionInfo = {
   connection: SSH2Promise;
 };
 
-export function makeEventHandler({
-  afterConnected,
-  afterDisconnected,
-  afterDeployed,
-  debounceTime,
-}: {
+interface EventHandler {
   /**
    * Called after the remote system is connected to
    *
@@ -71,10 +66,15 @@ export function makeEventHandler({
    * Time to wait for subsequent file changes before deploying
    */
   debounceTime?: number;
-}): void {
-  debounceTime ??= 50; // ms
-  if (typeof debounceTime !== 'number') throw new Error('debounceTime must be a number');
-  if (debounceTime < 0) throw new Error('debounceTime must be greater than or equal to 0');
+}
+
+export async function makeEventHandler(eh: EventHandler): Promise<EventHandler> {
+  eh.debounceTime ??= 50; // ms
+  if (typeof eh.debounceTime !== 'number') throw new Error('debounceTime must be a number');
+  if (eh.debounceTime < 0) throw new Error('debounceTime must be greater than or equal to 0');
 
   // TODO: Implement
+  console.log('Made event handler!');
+
+  return eh;
 }
