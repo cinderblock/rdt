@@ -22,6 +22,10 @@ if (require.main === module) {
         'esbuild-register',
       ],
     }).once('close', code => (process.exitCode = code!));
+    // Tested up to node 19.0.0
+    if (parseInt(process.version.slice(1)) > 19) {
+      logger.warn('Node version > 19 detected. Has the --experimental-loader flag been removed?');
+    }
   } else {
     logger.debug('Running with esbuild-register loader');
     cli(...process.argv.slice(2))
