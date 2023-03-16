@@ -49,18 +49,9 @@ export async function cli(...args: string[]) {
     // return build();
     case undefined:
     case 'dev':
-      return thind(...(await thindArgs(...rest)));
-    case 'dev2':
-      return thind('dev2', {
-        remote: {
-          host: 'raspberrypi.local',
-          user: 'pi',
-          privateKey: 'C:\\Users\\camer\\.ssh\\id_rsa',
-        },
-        devServer: true,
-        ports: [3000],
-        // ports: new Map([[3000, true]]),
-      });
+      const args = await thindArgs(...rest);
+      logger.debug('Selected target:', args[0]);
+      return thind(...args);
     case 'help':
       return help(...rest);
   }
