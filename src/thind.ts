@@ -26,6 +26,7 @@ export async function help(...args: string[]) {
  * @returns [name, target] The name of the selected target and the target's config
  */
 export async function args(...args: string[]): Promise<[string, Target]> {
+  logger.debug('Loading config');
   const { targets } = await config();
 
   if (!targets) throw new Error('No targets defined');

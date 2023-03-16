@@ -4,6 +4,7 @@
  */
 
 import { BuildAndDeploy } from './BuildAndDeployHandler';
+import logger from './log';
 
 type DevServerOptions = {
   /**
@@ -169,9 +170,12 @@ export type Config = {
 };
 
 export async function config(): Promise<Config> {
+  logger.info('Loading config...');
   // Open `thind.ts` in the current directory
   const config = await import(`file://${process.cwd()}/thind.ts`);
   // TODO: Check more directories?
+
+  logger.info('Config loaded');
 
   // TODO: Validate the config
 
