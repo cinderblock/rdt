@@ -11,17 +11,24 @@ export { childLogger as logger } from './log';
 if (require.main === module) {
   if (!process.execArgv.includes('--experimental-loader')) {
     logger.debug('Re-running with esbuild-register loader');
-    const [bin, module, ...args] = process.argv;
+    const [nodeBin, module, ...args] = process.argv;
     fork(module, args, {
       stdio: 'inherit',
       execArgv: [
         ...process.execArgv,
+
+        // TODO: Do we need to use a different loader for older versions of node?
         '--experimental-loader',
         'esbuild-register/loader',
+
         '--require',
         'esbuild-register',
+
+        // Prevent warnings: "(node:29160) ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time"
+        '--no-warnings',
       ],
-    }).once('close', code => (process.exitCode = code!));
+    }).once('close', process.exit);
+
     // Tested up to node 19.0.0
     if (parseInt(process.version.slice(1)) > 19) {
       logger.warn('Node version > 19 detected. Has the --experimental-loader flag been removed?');
