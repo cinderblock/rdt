@@ -6,6 +6,7 @@ import { BuildStep } from './BuildStep';
 
 export { createBuildAndDeployHandler, BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target } from './config';
+export { childLogger as logger } from './log';
 
 export async function help(...args: string[]) {
   console.log('Usage: thind dev [target-name]');

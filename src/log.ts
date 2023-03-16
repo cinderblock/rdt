@@ -22,3 +22,5 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export default logger;
+
+export const childLogger = logger.child({ service: 'child' });

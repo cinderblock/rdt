@@ -6,6 +6,7 @@ import { thind, help as thindHelp, args as thindArgs } from './thind';
 
 // Since this is also the main import, export the important stuff
 export { thind, createBuildAndDeployHandler, BuildAndDeploy, BuildResult, Config, Target } from './thind';
+export { childLogger as logger } from './log';
 
 if (require.main === module) {
   if (!process.execArgv.includes('--experimental-loader')) {
