@@ -29,7 +29,7 @@ type ConnectionInfo = {
   connection: SSH2Promise;
 };
 
-interface EventHandler {
+export interface BuildAndDeploy {
   /**
    * Called after the remote system is connected to
    *
@@ -68,13 +68,13 @@ interface EventHandler {
   debounceTime?: number;
 }
 
-export async function makeEventHandler(eh: EventHandler): Promise<EventHandler> {
-  eh.debounceTime ??= 50; // ms
-  if (typeof eh.debounceTime !== 'number') throw new Error('debounceTime must be a number');
-  if (eh.debounceTime < 0) throw new Error('debounceTime must be greater than or equal to 0');
+export async function createBuildAndDeployHandler(bd: BuildAndDeploy): Promise<BuildAndDeploy> {
+  bd.debounceTime ??= 50; // ms
+  if (typeof bd.debounceTime !== 'number') throw new Error('debounceTime must be a number');
+  if (bd.debounceTime < 0) throw new Error('debounceTime must be greater than or equal to 0');
 
   // TODO: Implement
-  console.log('Made event handler!');
+  console.log('Made Build And Deploy handler!');
 
-  return eh;
+  return bd;
 }

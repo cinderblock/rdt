@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
+import { fork } from 'child_process';
 import logger from './log';
 import { thind, help as thindHelp, args as thindArgs } from './thind';
 
 // Since this is also the main import, export the important stuff
-export { thind, makeEventHandler, BuildResult } from './thind';
+export { thind, createBuildAndDeployHandler, BuildAndDeploy, BuildResult, Config, Target } from './thind';
 
 function getArgs() {
   const args = process.argv.slice(2);
@@ -20,20 +21,36 @@ function getArgs() {
 }
 
 if (require.main === module) {
-  cli(...getArgs())
-    .then(() => logger.debug('Normal exit'))
-    .catch(e => {
-      logger.error('Uncaught error:');
-      logger.error(e);
-      process.exitCode = 2;
-    })
-    .then(() => logger.debug('Done running...'))
-    .then(() =>
-      setTimeout(() => {
-        logger.warn('Forcing exit');
-        process.exit((process.exitCode ?? 0) + 1);
-      }, 1000).unref(),
-    );
+  if (!process.execArgv.includes('--experimental-loader')) {
+    logger.debug('Re-running with esbuild-register loader');
+    const [bin, module, ...args] = process.argv;
+    fork(module, args, {
+      stdio: 'inherit',
+      execArgv: [
+        ...process.execArgv,
+        '--experimental-loader',
+        'esbuild-register/loader',
+        '--require',
+        'esbuild-register',
+      ],
+    }).once('close', code => (process.exitCode = code!));
+  } else {
+    logger.debug('Running with esbuild-register loader');
+    cli(...getArgs())
+      .then(() => logger.debug('Normal exit'))
+      .catch(e => {
+        logger.error('Uncaught error:');
+        logger.error(e);
+        process.exitCode = 2;
+      })
+      .then(() => logger.debug('Done running...'))
+      .then(() =>
+        setTimeout(() => {
+          logger.warn('Forcing exit');
+          process.exit((process.exitCode ?? 0) + 1);
+        }, 1000).unref(),
+      );
+  }
 }
 
 export async function cli(...args: string[]) {

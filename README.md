@@ -88,30 +88,39 @@ npm run dev -- myPi
 npm run dev -- otherPi
 ```
 
-## Event Handler
+## Build and Deploy Handler
 
-You must define event handlers to actually do anything useful.
+You must define handlers to actually do anything useful.
 
 Example handlers for various setups are provided in the `examples` directory.
 
-A minimal event handler is:
+A minimal Build and Deploy handler is:
 
 ```ts
-import { makeEventHandler, BuildResult } from 'thind';
+import { createBuildAndDeployHandler } from 'thind';
 
-makeEventHandler({
+export default createBuildAndDeployHandler({
   async afterConnected(options) {
     console.log('connected:', options.targetName);
     console.log(options.targetConfig);
-
-    // Setup dependencies n remote that are required to run the app
-    await options.connection.exec('npm install');
   },
 
-  async afterDisconnected(options) {},
+  async afterDisconnected(options) {
+    console.log('disconnected:', options.targetName);
+  },
 
-  async onFile(options): Promise<BuildResult> {},
+  async onFile(options) {
+    return true;
+  },
 
-  async afterDeployed(options) {},
+  async afterDeployed({ connection, targetName, targetConfig, changedFiles }) {
+    // Setup dependencies on remote that are required to run the app
+    if (changedFiles.includes('package.json')) await connection.exec('npm install');
+
+    // Restart the app if any .js files changed
+    if (changedFiles.reduce((acc, file) => acc || file.endsWith('.js'), false)) {
+      await connection.exec('systemctl restart my-app');
+    }
+  },
 });
 ```

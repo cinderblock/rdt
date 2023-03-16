@@ -3,8 +3,7 @@
  * Load the thind config file
  */
 
-import { readFile } from 'fs/promises';
-import { parse as parseYaml } from 'yaml';
+import { BuildAndDeploy } from './BuildAndDeployHandler';
 
 type DevServerOptions = {
   /**
@@ -120,9 +119,9 @@ type RemoteOptions = {
 /**
  * The config type of a single target
  */
-export type Target = null | {
+export type Target = {
   /**
-   * File that default exports a class that extends the `EventHandler` class
+   * File that exports a "BuildAndDeploy" object, created by "createBuildAndDeployHandler".
    *
    * Events are:
    *  - afterConnected
@@ -130,7 +129,7 @@ export type Target = null | {
    *  - onFile
    *  - afterDeployed
    */
-  eventHandler?: string;
+  handler: BuildAndDeploy;
 
   /**
    * Should a browser bundle be built, served, and deployed
@@ -146,24 +145,6 @@ export type Target = null | {
    * The ports to forward
    */
   ports?: number[] | Map<number, number | true> | undefined;
-
-  /**
-   * esbuild settings for files
-   */
-  esbuild?: {
-    /**
-     * Should the built files be minified
-     *
-     * @default false
-     */
-    minify?: boolean | undefined;
-    /**
-     * Should we generate source maps
-     *
-     * @default true
-     */
-    sourceMaps?: boolean | undefined;
-  };
 };
 
 /**
@@ -188,31 +169,9 @@ export type Config = {
 };
 
 export async function config(): Promise<Config> {
-  // Open `thind.yaml` in the current directory
-  const file = await readFile('thind.yaml');
+  // Open `thind.ts` in the current directory
+  const config = await import(`file://${process.cwd()}/thind.ts`);
   // TODO: Check more directories?
-
-  // Parse the file as YAML
-  const config = parseYaml(file.toString(), {
-    // Why not...
-    prettyErrors: true,
-
-    // Strict mode. Throw on duplicate keys.
-    strict: true,
-
-    // Convert all keys to strings to test for equality
-    uniqueKeys: (a, b) => '' + a == '' + b,
-
-    // Be verbose
-    logLevel: 'warn',
-
-    // Force the YAML version to 1.2
-    version: '1.2',
-
-    // Custom schema processing?
-    // schema: ...,
-    // customTags: [],
-  });
 
   // TODO: Validate the config
 
