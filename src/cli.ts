@@ -7,19 +7,6 @@ import { thind, help as thindHelp, args as thindArgs } from './thind';
 // Since this is also the main import, export the important stuff
 export { thind, createBuildAndDeployHandler, BuildAndDeploy, BuildResult, Config, Target } from './thind';
 
-function getArgs() {
-  const args = process.argv.slice(2);
-
-  const loader = args.indexOf('--loader');
-
-  if (loader !== -1) {
-    logger.error('loader arg included!');
-    throw new Error('loader arg included');
-  }
-
-  return args;
-}
-
 if (require.main === module) {
   if (!process.execArgv.includes('--experimental-loader')) {
     logger.debug('Re-running with esbuild-register loader');
@@ -36,7 +23,7 @@ if (require.main === module) {
     }).once('close', code => (process.exitCode = code!));
   } else {
     logger.debug('Running with esbuild-register loader');
-    cli(...getArgs())
+    cli(...process.argv.slice(2))
       .then(() => logger.debug('Normal exit'))
       .catch(e => {
         logger.error('Uncaught error:');
