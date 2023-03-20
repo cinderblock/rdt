@@ -69,11 +69,9 @@ function watchForPackageChanges(triggers: BuildStep) {
 export async function rdt(name: string, target: Target) {
   logger.info(`RDT Target: ${name}`);
 
-  if (target.devServer === undefined) target.devServer = true;
-  if (target.devServer === true)
-    target.devServer = {
-      entry: 'src/www/index.ts',
-    };
+  if (typeof target.devServer === 'string') {
+    target.devServer = { entry: target.devServer };
+  }
 
   const server = new BuildStep('Build Server Locally', buildServer);
 

@@ -135,7 +135,7 @@ export type Target = {
   /**
    * Should a browser bundle be built, served, and deployed
    */
-  devServer?: boolean | DevServerOptions | undefined;
+  devServer?: string | DevServerOptions | undefined;
 
   /**
    * Details for connecting to the remote server
