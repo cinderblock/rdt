@@ -69,11 +69,13 @@ Use `npx` or directly in `package.json` scripts without `npx`:
 
 ```json
 {
-  // ...
+  "name": "my-project",
   "scripts": {
     "dev": "rdt dev"
+  },
+  "devDependencies": {
+    "rdt": "^0.0.1"
   }
-  // ...
 }
 ```
 
