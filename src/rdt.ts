@@ -4,7 +4,7 @@ import logger from './log';
 import { relativeToProjectRoot } from './util/relativeToProjectRoot';
 import { BuildStep } from './BuildStep';
 
-export { createBuildAndDeployHandler, BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
+export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target } from './config';
 export { childLogger as logger } from './log';
 
@@ -28,9 +28,22 @@ export async function help(...args: string[]) {
  */
 export async function args(...args: string[]): Promise<[string, Target]> {
   logger.debug('Loading config');
-  const { targets } = await config();
+  const conf = await config();
+
+  logger.debug('Config loaded in args');
+
+  if (!conf) {
+    logger.error('No config loaded');
+    throw new Error('No config loaded');
+  }
+
+  logger.debug('???' + conf);
+
+  const { targets } = conf;
 
   if (!targets) throw new Error('No targets defined');
+
+  logger.debug('Targets defined!');
 
   // Select the first target if none is specified in the cli arguments
   const selected = args[0] || Object.keys(targets)[0];

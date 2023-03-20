@@ -5,7 +5,7 @@ import logger from './log';
 import { rdt, help as rdtHelp, args as rdtArgs } from './rdt';
 
 // Since this is also the main import, export the important stuff
-export { rdt, createBuildAndDeployHandler, BuildAndDeploy, BuildResult, Config, Target } from './rdt';
+export { rdt, BuildAndDeploy, BuildResult, Config, Target } from './rdt';
 export { childLogger as logger } from './log';
 
 if (require.main === module) {
@@ -13,7 +13,6 @@ if (require.main === module) {
     logger.debug('Re-running with esbuild-register loader');
     const [nodeBin, module, ...args] = process.argv;
     fork(module, args, {
-      stdio: 'inherit',
       execArgv: [
         ...process.execArgv,
 

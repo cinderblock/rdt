@@ -179,5 +179,7 @@ export async function config(): Promise<Config> {
 
   // TODO: Validate the config
 
+  logger.debug(config);
+
   return config;
 }

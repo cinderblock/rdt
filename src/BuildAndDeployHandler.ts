@@ -1,6 +1,5 @@
 import SSH2Promise from 'ssh2-promise';
 import { Target } from './config';
-import logger from './log';
 
 export type HandledInternallyResult = true;
 export type BlobResult = Buffer;
@@ -67,15 +66,4 @@ export interface BuildAndDeploy {
    * Time to wait for subsequent file changes before deploying
    */
   debounceTime?: number;
-}
-
-export async function createBuildAndDeployHandler(bd: BuildAndDeploy): Promise<BuildAndDeploy> {
-  bd.debounceTime ??= 50; // ms
-  if (typeof bd.debounceTime !== 'number') throw new Error('debounceTime must be a number');
-  if (bd.debounceTime < 0) throw new Error('debounceTime must be greater than or equal to 0');
-
-  // TODO: Implement
-  logger.debug('Made Build And Deploy handler!');
-
-  return bd;
 }
