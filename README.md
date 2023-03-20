@@ -26,29 +26,35 @@ Create a file `rdt.ts` in the root of your project.
 ### Example `rdt.ts`
 
 ```ts
-import { createBuildAndDeployHandler } from 'rdt';
+import { Target, BuildAndDeploy, logger } from 'rdt';
 
-export default createBuildAndDeployHandler({
-  async afterConnected(options) {
-    console.log('connected:', options.targetName);
-    console.log(options.targetConfig);
+const handler: BuildAndDeploy = {
+  async afterConnected({ connection, targetName, targetConfig }) {
+    logger.info('connected:', targetName);
+    logger.info(targetConfig);
   },
 
-  async afterDisconnected(options) {
-    console.log('disconnected:', options.targetName);
+  async afterDisconnected({ targetName, targetConfig }) {
+    logger.info('disconnected:', targetName);
   },
 
-  async onFile(options) {
-    return true; // Transfer file to target
-    return false; // Do not transfer file to target
-    return Buffer.from('...'); // Transfer custom/compiled file content to target
+  async onFile({ connection, targetName, targetConfig, localPath }) {
+    return true;
   },
 
   async afterDeployed({ connection, targetName, targetConfig, changedFiles }) {
-    console.log('deployed:', targetName);
-    console.log(changedFiles);
+    logger.info('deployed:', targetName);
   },
-});
+};
+
+export default 'hdpi';
+
+export const targets: { [name: string]: Target } = {
+  hdpi: {
+    handler,
+    devServer: 'src/ui/index.ts',
+  },
+};
 ```
 
 ### `rdt dev [target]` - Start the development server
