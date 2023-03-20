@@ -1,6 +1,6 @@
 /**
  * @file config.ts
- * Load the thind config file
+ * Load the rdt config file
  */
 
 import { BuildAndDeploy } from './BuildAndDeployHandler';
@@ -31,14 +31,14 @@ type SystemdOptions = {
    *
    * Should not end in `.service`
    *
-   * @default thind-${name}
+   * @default rdt-${name}
    */
   serviceName?: string | undefined;
 
   /**
    * The description of the service
    *
-   * @default "Daemon deployed by thind to ${name}"
+   * @default "Daemon deployed by rdt to ${name}"
    */
   description?: string | undefined;
 
@@ -112,7 +112,7 @@ type RemoteOptions = {
    *
    * Can be absolute or relative to `connection.user`'s home directory.
    *
-   * @default .thind/${name}
+   * @default .rdt/${name}
    */
   path?: string;
 };
@@ -171,8 +171,8 @@ export type Config = {
 
 export async function config(): Promise<Config> {
   logger.info('Loading config...');
-  // Open `thind.ts` in the current directory
-  const config = await import(`file://${process.cwd()}/thind.ts`);
+  // Open `rdt.ts` in the current directory
+  const config = await import(`file://${process.cwd()}/rdt.ts`);
   // TODO: Check more directories?
 
   logger.info('Config loaded');

@@ -1,5 +1,5 @@
 {
-  "name": "thind",
+  "name": "rdt",
   "private": true,
   "version": "0.0.0",
   "description": "",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cinderblock/thind.git"
+    "url": "git+https://github.com/cinderblock/rdt.git"
   },
   "keywords": [
     "TypeScript",
@@ -32,9 +32,9 @@
   "author": "Cameron Tacklind <cameron@tacklind.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/cinderblock/thind/issues"
+    "url": "https://github.com/cinderblock/rdt/issues"
   },
-  "homepage": "https://github.com/cinderblock/thind#readme",
+  "homepage": "https://github.com/cinderblock/rdt#readme",
   "dependencies": {
     "esbuild": "^0.17.11",
     "esbuild-register": "^3.4.2",

@@ -9,13 +9,13 @@ export { Config, Target } from './config';
 export { childLogger as logger } from './log';
 
 export async function help(...args: string[]) {
-  console.log('Usage: thind dev [target-name]');
+  console.log('Usage: rdt dev [target-name]');
   console.log('  target-name: The name of the target to build for');
   console.log('               If omitted, the first target is used');
   console.log("               Creates a temporary target if it doesn't match any existing targets");
   console.log('Example:');
-  console.log('  $ thind dev');
-  console.log('  $ thind dev my-target # Connects to my-target as hostname unless it matches an existing target');
+  console.log('  $ rdt dev');
+  console.log('  $ rdt dev my-target # Connects to my-target as hostname unless it matches an existing target');
 }
 
 /**
@@ -32,6 +32,7 @@ export async function args(...args: string[]): Promise<[string, Target]> {
 
   if (!targets) throw new Error('No targets defined');
 
+  // Select the first target if none is specified in the cli arguments
   const selected = args[0] || Object.keys(targets)[0];
 
   if (!selected) {
@@ -52,8 +53,8 @@ function watchForPackageChanges(triggers: BuildStep) {
   triggers.run();
 }
 
-export async function thind(name: string, target: Target) {
-  logger.info(`Thind Target: ${name}`);
+export async function rdt(name: string, target: Target) {
+  logger.info(`RDT Target: ${name}`);
 
   if (target.devServer === undefined) target.devServer = true;
   if (target.devServer === true)

@@ -1,103 +1,32 @@
-# `thind` - Thin client development daemon
+# `rdt` - Remote Development Tool
 
-A Node.js development environment for lightweight remote systems.
+[![npm version](https://badge.fury.io/js/rdt.svg)](https://badge.fury.io/js/rdt)
+
+A Node.js development tool for lightweight remote systems.
 Use your high performance development machine to build and serve your project to a low performance remote device.
 
-`thind` is a daemon that runs on your development machine.
-`thind` watches your project directory for changes and, on change, builds your project and sends the build output to your remote host for execution.
-`thind` also runs a web server on your development machine for a fast local UI experience with easy connection to the real backend through integrated port forwarding.
+`rdt` is a daemon that runs on your development machine.
+`rdt` watches your project directory for changes and gives APIs to build and deploy your project to a remote device.
+`rdt` can run a local web server for a fast local UI experience with easy connection to the real backend through integrated port forwarding.
 
-Thind is still in early development.
+Remote Development Tool is still in early development.
 The API and configuration format might change.
 
 ## Installation
 
 ```bash
-npm install -D thind                # Npm package
-npm install -D cinderblock/thind    # Github repository
+npm install -D rdt                # Npm package
+npm install -D cinderblock/rdt    # Github repository
 ```
 
 ## Usage
 
-Create a file `thind.yaml` in the root of your project.
+Create a file `rdt.ts` in the root of your project.
 
-### Example `thind.yaml`
-
-```yaml
-targets:
-  myPi:
-    # !!! NOT UP TO DATE !!!
-    browser:
-      path: .thind/myPi/www
-      sources: src/www
-      serveLocal: true
-    daemon:
-      path: .thind/myPi
-      sources: src
-      systemd:
-        serviceName: thind-myPi
-        description: My Raspberry Pi Appliance
-        user: pi
-        group: pi
-        enable: true
-        env:
-          NODE_ENV: production
-          PORT: 3000
-        userService: false
-      build:
-        minify: false
-        sourceMaps: true
-        bundle: false
-        bundleExclude: []
-    connection:
-      host: thing-1.local # Can include port directly with `:` separator. Takes precedence over `port` property.
-      port: 22
-      user: pi
-      password: raspberry
-    ports:
-      3000: true # Forward port 3000 on the local machine to port 3000 on the remote machine.
-      8080: 80 # Forward port 8080 on the local machine to port 80 on the remote machine.
-  otherPi:
-    ports:
-      - 9001
-```
-
-### `thind dev [target]` - Start the development server
-
-```
-npx thind dev         # Run first target in thind.yaml
-npx thind dev myPi    # Run target: myPi
-npx thind dev otherPi # Run target: otherPi
-```
-
-Use `npx` or directly in `package.json` scripts without `npx`:
-
-```json
-{
-  // ...
-  "scripts": {
-    "dev": "thind dev"
-  }
-  // ...
-}
-```
-
-```
-npm run dev
-npm run dev -- myPi
-npm run dev -- otherPi
-```
-
-## Build and Deploy Handler
-
-You must define handlers to actually do anything useful.
-
-Example handlers for various setups are provided in the `examples` directory.
-
-A minimal Build and Deploy handler is:
+### Example `rdt.ts`
 
 ```ts
-import { createBuildAndDeployHandler } from 'thind';
+import { createBuildAndDeployHandler } from 'rdt';
 
 export default createBuildAndDeployHandler({
   async afterConnected(options) {
@@ -110,17 +39,40 @@ export default createBuildAndDeployHandler({
   },
 
   async onFile(options) {
-    return true;
+    return true; // Transfer file to target
+    return false; // Do not transfer file to target
+    return Buffer.from('...'); // Transfer custom/compiled file content to target
   },
 
   async afterDeployed({ connection, targetName, targetConfig, changedFiles }) {
-    // Setup dependencies on remote that are required to run the app
-    if (changedFiles.includes('package.json')) await connection.exec('npm install');
-
-    // Restart the app if any .js files changed
-    if (changedFiles.reduce((acc, file) => acc || file.endsWith('.js'), false)) {
-      await connection.exec('systemctl restart my-app');
-    }
+    console.log('deployed:', targetName);
+    console.log(changedFiles);
   },
 });
+```
+
+### `rdt dev [target]` - Start the development server
+
+```
+npx rdt dev         # Run first target in rdt.yaml
+npx rdt dev myPi    # Run target: myPi
+npx rdt dev otherPi # Run target: otherPi
+```
+
+Use `npx` or directly in `package.json` scripts without `npx`:
+
+```json
+{
+  // ...
+  "scripts": {
+    "dev": "rdt dev"
+  }
+  // ...
+}
+```
+
+```
+npm run dev
+npm run dev -- myPi
+npm run dev -- otherPi
 ```

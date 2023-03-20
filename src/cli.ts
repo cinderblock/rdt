@@ -2,10 +2,10 @@
 
 import { fork } from 'child_process';
 import logger from './log';
-import { thind, help as thindHelp, args as thindArgs } from './thind';
+import { rdt, help as rdtHelp, args as rdtArgs } from './rdt';
 
 // Since this is also the main import, export the important stuff
-export { thind, createBuildAndDeployHandler, BuildAndDeploy, BuildResult, Config, Target } from './thind';
+export { rdt, createBuildAndDeployHandler, BuildAndDeploy, BuildResult, Config, Target } from './rdt';
 export { childLogger as logger } from './log';
 
 if (require.main === module) {
@@ -60,9 +60,9 @@ export async function cli(...args: string[]) {
     // return build();
     case undefined:
     case 'dev':
-      const args = await thindArgs(...rest);
+      const args = await rdtArgs(...rest);
       logger.debug('Selected target:', args[0]);
-      return thind(...args);
+      return rdt(...args);
     case 'help':
       return help(...rest);
   }
@@ -78,10 +78,10 @@ export async function help(...args: string[]) {
       // console.log("  build");
       console.log('  help [command]');
       console.log('Example:');
-      console.log('  $ thind dev');
-      console.log('  $ thind help dev');
+      console.log('  $ rdt dev');
+      console.log('  $ rdt help dev');
       break;
     case 'dev':
-      return thindHelp(...rest);
+      return rdtHelp(...rest);
   }
 }

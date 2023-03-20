@@ -35,7 +35,7 @@ export interface BuildAndDeploy {
    * Called after the remote system is connected to
    *
    * @param options
-   * @return Promise thind will wait for before continuing remote dependent tasks
+   * @return Promise rdt will wait for before continuing remote dependent tasks
    */
   afterConnected(options: SharedInfo & ConnectionInfo & {}): Promise<void>;
 

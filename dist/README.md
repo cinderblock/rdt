@@ -1,6 +1,6 @@
 # Distribution Scripts
 
-This directory contains scripts for building (and eventually publishing) thind.
+This directory contains scripts for building (and eventually publishing) rdt.
 
 ## Building
 
