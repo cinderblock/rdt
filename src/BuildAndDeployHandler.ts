@@ -50,7 +50,7 @@ export interface BuildAndDeploy {
    * Called to for each source file being deployed
    * @param options
    */
-  onFile(options: SharedInfo & ConnectionInfo & { localPath: string }): Promise<BuildResult>;
+  onFileChange(options: SharedInfo & ConnectionInfo & { localPath: string }): Promise<BuildResult>;
 
   afterDeployed(
     options: SharedInfo &

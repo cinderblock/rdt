@@ -127,7 +127,7 @@ export type Target = {
    * Events are:
    *  - afterConnected
    *  - afterDisconnected
-   *  - onFile
+   *  - onFileChange
    *  - afterDeployed
    */
   handler: BuildAndDeploy;
@@ -148,25 +148,27 @@ export type Target = {
   ports?: number[] | Map<number, number | true> | undefined;
 };
 
+export type Targets = { [name: string]: Target };
+
 /**
  * The config type
  */
 export type Config = {
   /**
-   * The version of the config file
+   * The version of RDT this config is for
    * @current v0.0
    */
   version?: string | undefined;
 
   /**
-   * The targets to build
+   * The default target to build
    */
-  targets?: { [name: string]: Target };
+  default?: string | undefined;
 
   /**
-   * Shared settings for all targets
+   * The targets to build
    */
-  shared?: Target;
+  targets: Targets;
 };
 
 export async function config(): Promise<Config> {

@@ -21,12 +21,12 @@ npm install -D cinderblock/rdt    # Github repository
 
 ## Usage
 
-Create a file `rdt.ts` in the root of your project.
+Create a file `rdt.ts` in the root of your project that exports a `targets` object and an optional default target name.
 
 ### Example `rdt.ts`
 
 ```ts
-import { Target, BuildAndDeploy, logger } from 'rdt';
+import { Targets, BuildAndDeploy, logger } from 'rdt';
 
 const handler: BuildAndDeploy = {
   async afterConnected({ connection, targetName, targetConfig }) {
@@ -38,7 +38,7 @@ const handler: BuildAndDeploy = {
     logger.info('disconnected:', targetName);
   },
 
-  async onFile({ connection, targetName, targetConfig, localPath }) {
+  async onFileChange({ connection, targetName, targetConfig, localPath }) {
     return true;
   },
 
@@ -49,7 +49,7 @@ const handler: BuildAndDeploy = {
 
 export default 'hdpi';
 
-export const targets: { [name: string]: Target } = {
+export const targets: Targets = {
   hdpi: {
     handler,
     devServer: 'src/ui/index.ts',

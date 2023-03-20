@@ -5,7 +5,7 @@ import logger from './log';
 import { rdt, help as rdtHelp, args as rdtArgs } from './rdt';
 
 // Since this is also the main import, export the important stuff
-export { rdt, BuildAndDeploy, BuildResult, Config, Target } from './rdt';
+export { rdt, BuildAndDeploy, BuildResult, Config, Target, Targets } from './rdt';
 export { childLogger as logger } from './log';
 
 if (require.main === module) {
