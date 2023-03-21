@@ -16,11 +16,35 @@ const logger = winston.createLogger({
 if (process.env.NODE_ENV !== 'production') {
   logger.add(
     new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+      format: winston.format.combine(
+        winston.format(info => {
+          // Windows gets an extra space in the console
+          const sep = process.platform === 'win32' ? ' ' : '';
+          switch (info.label) {
+            case 'rdt':
+              // Not sure why `🖥️` needs an extra whitespace to align with others...
+              info.message = '🖥️ ' + sep + info.message;
+              delete info.label;
+              break;
+            case 'user':
+              info.message = '👤' + sep + info.message;
+              delete info.label;
+              break;
+            default:
+              info.message = '❔' + sep + info.message;
+              break;
+          }
+          // Account for varying width of
+          info.message = '\t' + info.message;
+          return info;
+        })(),
+        winston.format.colorize(),
+        winston.format.simple(),
+      ),
     }),
   );
 }
 
-export default logger;
+export default logger.child({ label: 'rdt' });
 
-export const childLogger = logger.child({ service: 'child' });
+export const userLogger = logger.child({ label: 'user' });

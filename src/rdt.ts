@@ -6,7 +6,7 @@ import { BuildStep } from './BuildStep';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
-export { childLogger as logger } from './log';
+export { userLogger as logger } from './log';
 
 export async function help(...args: string[]) {
   console.log('Usage: rdt dev [target-name]');
