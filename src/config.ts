@@ -174,14 +174,18 @@ export type Config = {
 export async function config(): Promise<Config> {
   logger.info('Loading config...');
   // Open `rdt.ts` in the current directory
-  const config = await import(`file://${process.cwd()}/rdt.ts`);
+  const {
+    default: { version, default: defaultTarget, targets },
+  } = await import(`file://${process.cwd()}/rdt.ts`);
   // TODO: Check more directories?
 
-  logger.info('Config loaded');
+  logger.debug('Config loaded');
+
+  logger.debug(`Config version: ${version}`);
+  logger.debug(`Default target: ${defaultTarget}`);
+  logger.info(`Targets: ${Object.keys(targets).join(', ')}`);
 
   // TODO: Validate the config
 
-  logger.debug(config);
-
-  return config;
+  return { version, default: defaultTarget, targets };
 }
