@@ -9,3 +9,6 @@ outdir
 drawio
 
 deepmerge
+
+tsbuildinfo
+codepaths

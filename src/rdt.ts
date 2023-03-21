@@ -1,8 +1,10 @@
 import { config, Target } from './config';
-import { register } from 'esbuild-register/dist/node';
 import logger from './log';
-import { relativeToProjectRoot } from './util/relativeToProjectRoot';
-import { BuildStep } from './BuildStep';
+import SSH2Promise from 'ssh2-promise';
+import { glob } from 'glob';
+import { watch } from 'fs/promises';
+import { BuildResult } from './BuildAndDeployHandler';
+import { findPrivateKey } from './util/findPrivateKey';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
@@ -37,8 +39,6 @@ export async function args(...args: string[]): Promise<[string, Target]> {
     throw new Error('No config loaded');
   }
 
-  logger.debug('???' + conf);
-
   const { targets } = conf;
 
   if (!targets) throw new Error('No targets defined');
@@ -53,144 +53,144 @@ export async function args(...args: string[]): Promise<[string, Target]> {
   }
   return [selected, targets[selected]];
 }
+export async function rdt(targetName: string, targetConfig: Target) {
+  logger.info(`RDT Target: ${targetName}`);
 
-function watchForServerChanges(triggers: BuildStep) {
-  triggers.run();
-}
+  /**
+   * Start in parallel:
+   *  - Watch for changes in sources
+   *  - Start connection to remote
+   *
+   * On Change:
+   *  - Run `onFileChanged` hook from `rdt.ts`
+   *
+   * After all `onFileChanged` hooks have run:
+   * - Run `afterDeployed` hook from `rdt.ts`
+   *
+   * On Connection:
+   * - Run `afterConnected` hook from `rdt.ts`
+   *
+   * On Disconnect:
+   * - Run `afterDisconnected` hook from `rdt.ts`
+   */
 
-function watchForUIChanges(triggers: BuildStep) {
-  triggers.run();
-}
-
-function watchForPackageChanges(triggers: BuildStep) {
-  triggers.run();
-}
-
-export async function rdt(name: string, target: Target) {
-  logger.info(`RDT Target: ${name}`);
-
-  if (typeof target.devServer === 'string') {
-    target.devServer = { entry: target.devServer };
+  if (typeof targetConfig.devServer === 'string') {
+    targetConfig.devServer = { entry: targetConfig.devServer };
   }
 
-  const server = new BuildStep('Build Server Locally', buildServer);
+  if (!targetConfig.remote) {
+    targetConfig.remote = {};
+  }
+  if (!targetConfig.remote.host) {
+    targetConfig.remote.host = targetName;
+  }
 
-  const remote = new BuildStep('Connect to Remote', connectToRemote);
+  if (!targetConfig.remote.username) {
+    targetConfig.remote.username = 'pi';
+  }
 
-  const transferServerStep = new BuildStep('Transfer Server', transferServer, {
-    dependencies: [remote],
-    triggersFrom: [server],
-  });
+  // No authentication method specified. Try to find one.
+  if (
+    targetConfig.remote.password === undefined &&
+    targetConfig.remote.privateKey === undefined &&
+    targetConfig.remote.agent === undefined
+  ) {
+    logger.debug('No authentication method specified. Trying to find one...');
+    // 1. If SSH_AUTH_SOCK is set, use the agent
+    // 2. Try finding a private key in the usual directories
 
-  const portForwards = new BuildStep('Forward Ports', forwardPorts, { triggersFrom: [remote] });
-
-  let uiStep: BuildStep | undefined;
-
-  if (target.devServer) {
-    uiStep = new BuildStep('Build UI Locally', buildUI);
-    const transferUIStep = new BuildStep('Transfer UI', transferUI, { dependencies: [remote], triggersFrom: [uiStep] });
-
-    if (target.devServer.serveLocal ?? true) {
-      const serveUIStep = new BuildStep('Serve UI Locally', serveUI, {
-        dependencies: [portForwards],
-        triggersFrom: [uiStep],
-      });
+    if (process.env.SSH_AUTH_SOCK) {
+      targetConfig.remote.agent = process.env.SSH_AUTH_SOCK;
+    } else {
+      const key = await findPrivateKey();
+      if (key) {
+        logger.debug(`Trying private key`);
+        targetConfig.remote.privateKey = key;
+      }
     }
   }
 
-  const setup = new BuildStep('Setup Systemd on Remote', setupSystemd, { triggersFrom: [remote] });
+  if (!targetConfig.watch) {
+    targetConfig.watch = {};
+  }
 
-  const outputMonitorStep = new BuildStep('Output Monitor', outputMonitor, {
-    dependencies: [setup],
-    triggersFrom: [remote],
+  if (!targetConfig.watch.glob) {
+    targetConfig.watch.glob = '**/*';
+  }
+
+  if (!targetConfig.watch.options) {
+    // TODO: Ignore node_modules
+    targetConfig.watch.options = { ignore: [] };
+  }
+
+  logger.info(
+    `Connecting to remote: ${targetConfig.remote.host}:${targetConfig.remote.port ?? 22} as ${
+      targetConfig.remote.username
+    }`,
+  );
+
+  const connection = new SSH2Promise(targetConfig.remote);
+
+  // Find all files in target.watchGlob
+  const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
+
+  connection.connect().then(() => {
+    logger.debug('Connected');
+    targetConfig.handler.afterConnected({ connection, targetName, targetConfig });
   });
 
-  const transferPackageJsonStep = new BuildStep('Transfer package.json', transferPackageJson, {
-    dependencies: [remote],
+  // TODO: Is this right?
+  connection.on('close', () => {
+    logger.debug('Disconnected');
+    targetConfig.handler.afterDisconnected({ targetName, targetConfig });
   });
 
-  const installStep = new BuildStep('Install on Remote', install, {
-    dependencies: [remote],
-    triggersFrom: [transferPackageJsonStep],
-  });
+  const changes: BuildResult[] = [];
 
-  const startStep = new BuildStep('Start on Remote', start, {
-    dependencies: [remote, setup, outputMonitorStep],
-    triggersFrom: [installStep, transferServerStep],
-  });
+  // This debounce is not perfect but gets the job done.
+  // It should start the timer when the last file is changed instead of when the last build is finished
+  let changeTimeout: NodeJS.Timeout | undefined;
+  function change(r: BuildResult) {
+    clearTimeout(changeTimeout);
+    changeTimeout = setTimeout(() => {
+      // Make a copy of changes and empty it
+      const changedFiles = changes.slice();
+      changes.length = 0;
 
-  async function buildServer(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
+      logger.debug('Deployed');
+
+      targetConfig.handler.afterDeployed({ connection, targetName, targetConfig, changedFiles });
+    }, targetConfig.debounceTime ?? 200);
+    changes.push(r);
   }
 
-  async function buildUI(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
+  const files = await items;
+
+  logger.debug(`Found ${files.length} files`);
+
+  await Promise.all(
+    files.map(async function* (filePath) {
+      const file = typeof filePath == 'string' ? filePath : filePath.relative();
+
+      logger.debug(`Watching ${file}`);
+
+      function trigger() {
+        clearTimeout(changeTimeout);
+
+        targetConfig.handler.onFileChanged({ connection, targetName, targetConfig, file }).then(change);
+      }
+
+      trigger();
+
+      for await (const event of watch(file)) trigger();
+
+      // TODO: Handle new files / deleted files
+    }),
+  );
+
+  function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async function connectToRemote(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000 + 3000));
-    logger.warn(this.name);
-  }
-
-  async function transferUI(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function serveUI(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function transferServer(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function forwardPorts(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function setupSystemd(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function outputMonitor(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function transferPackageJson(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function install(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  async function start(this: BuildStep) {
-    await new Promise(r => setTimeout(r, Math.random() * 1000));
-    logger.warn(this.name);
-  }
-
-  remote.run();
-
-  watchForServerChanges(server);
-  watchForPackageChanges(transferPackageJsonStep);
-  uiStep && watchForUIChanges(uiStep);
-
-  await startStep.result;
-  logger.debug('Done');
-
-  await new Promise(r => setTimeout(r, 3000));
-
-  watchForServerChanges(server);
-  await startStep.result;
-  logger.debug('Done2');
+  await sleep(100000000);
 }

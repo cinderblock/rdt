@@ -132,7 +132,14 @@ async function build({ distDir: outDir, bundleName, skipDts, watch }: Options) {
     outdir: outDir,
     bundle: true,
     entryPoints: [join('src', 'cli.ts')],
-    external: ['esbuild'],
+    external: [
+      // TODO: Load this list from package.json#dependencies
+      'esbuild',
+      'esbuild-register',
+      'glob',
+      'ssh2-promise',
+      'winston',
+    ],
   };
 
   const buildAllOpts: esbuild.BuildOptions = {

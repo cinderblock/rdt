@@ -36,13 +36,16 @@
   },
   "homepage": "https://github.com/cinderblock/rdt#readme",
   "dependencies": {
+    "@types/ssh2": "^1.11.8",
     "esbuild": "^0.17.11",
     "esbuild-register": "^3.4.2",
+    "glob": "^9.3.1",
     "ssh2-promise": "^1.0.3",
     "winston": "^3.8.2"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
     "esbuild-plugin-d.ts": "^1.1.0",
     "esbuild-runner": "^2.2.2",
     "eslint": "^8.35.0",

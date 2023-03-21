@@ -23,6 +23,8 @@ if (require.main === module) {
         '--require',
         'esbuild-register',
 
+        '--enable-source-maps',
+
         // Prevent warnings: "(node:29160) ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time"
         // Note, this also prevents other warnings that may be useful... Run without this flag periodically to check for other warnings
         '--no-warnings',

@@ -5,6 +5,8 @@
 
 import { BuildAndDeploy } from './BuildAndDeployHandler';
 import logger from './log';
+import { GlobOptions } from 'glob';
+import SSHConfig from 'ssh2-promise/lib/sshConfig';
 
 type DevServerOptions = {
   /**
@@ -22,91 +24,8 @@ type DevServerOptions = {
   serveLocal?: boolean | string | undefined;
 };
 
-/**
- * Configuration for Systemd
- */
-type SystemdOptions = {
-  /**
-   * The name of the service.
-   *
-   * Should not end in `.service`
-   *
-   * @default rdt-${name}
-   */
-  serviceName?: string | undefined;
-
-  /**
-   * The description of the service
-   *
-   * @default "Daemon deployed by rdt to ${name}"
-   */
-  description?: string | undefined;
-
-  /**
-   * The user to run the server as
-   *
-   * @default connection.user
-   */
-  user?: string | number | undefined;
-  /**
-   * The group to run the server as
-   *
-   * @default connection.user primary group
-   */
-  group?: string | number | undefined;
-
-  /**
-   * Should the daemon be started on boot
-   *
-   * @default true
-   */
-  enable?: boolean | undefined;
-
-  /**
-   * The environment variables to set
-   */
-  env?: Record<string, string> | undefined;
-
-  /**
-   * Run as a user service
-   *
-   * @default false
-   */
-  userService?: boolean | undefined;
-};
-
-type RemoteOptions = {
-  /**
-   * The host to connect to.
-   *
-   * May include a port after a colon (`:`) which will override `port`
-   *
-   * @default ${name}
-   */
-  host?: string | undefined;
-  /**
-   * The port to connect to
-   *
-   * @default 22
-   */
-  port?: number | undefined;
-  /**
-   * The username to connect with
-   *
-   * @default pi
-   */
-  user?: string;
-  /**
-   * The password to connect with
-   */
-  password?: string | undefined;
-  /**
-   * The private key to connect with
-   *
-   * @default ~/.ssh/id_rsa
-   */
-  privateKey?: string | undefined;
-
+// TODO: Support Array<SSHConfig>
+type RemoteOptions = SSHConfig & {
   /**
    * The path on the server to deploy to.
    *
@@ -127,7 +46,7 @@ export type Target = {
    * Events are:
    *  - afterConnected
    *  - afterDisconnected
-   *  - onFileChange
+   *  - onFileChanged (also called on startup for all files)
    *  - afterDeployed
    */
   handler: BuildAndDeploy;
@@ -146,6 +65,25 @@ export type Target = {
    * The ports to forward
    */
   ports?: number[] | Map<number, number | true> | undefined;
+
+  watch?: {
+    /**
+     * The glob to use for watching files
+     * @default `**\/*, !node_modules`
+     */
+    glob?: string | undefined;
+
+    /**
+     * The options to pass to `glob`
+     * @default ignores `node_modules`
+     */
+    options?: GlobOptions;
+  };
+
+  /**
+   * Time to wait for subsequent file changes before deploying
+   */
+  debounceTime?: number;
 };
 
 export type Targets = { [name: string]: Target };

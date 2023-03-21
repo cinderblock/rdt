@@ -50,7 +50,7 @@ export interface BuildAndDeploy {
    * Called to for each source file being deployed
    * @param options
    */
-  onFileChange(options: SharedInfo & ConnectionInfo & { localPath: string }): Promise<BuildResult>;
+  onFileChanged(options: SharedInfo & ConnectionInfo & { file: string }): Promise<BuildResult>;
 
   afterDeployed(
     options: SharedInfo &
@@ -58,12 +58,7 @@ export interface BuildAndDeploy {
         /**
          * List of files changed since the last deploy
          */
-        changedFiles: string[];
+        changedFiles: BuildResult[];
       },
   ): Promise<void>;
-
-  /**
-   * Time to wait for subsequent file changes before deploying
-   */
-  debounceTime?: number;
 }

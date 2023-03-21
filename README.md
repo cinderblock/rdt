@@ -38,7 +38,7 @@ const handler: BuildAndDeploy = {
     logger.info('disconnected:', targetName);
   },
 
-  async onFileChange({ connection, targetName, targetConfig, localPath }) {
+  async onFileChanged({ connection, targetName, targetConfig, localPath }) {
     return true;
   },
 
@@ -47,13 +47,15 @@ const handler: BuildAndDeploy = {
   },
 };
 
-export default 'hdpi';
+export default 'myPi';
+
+const myPi: Target = {
+  handler,
+  devServer: 'src/ui/index.ts',
+};
 
 export const targets: Targets = {
-  hdpi: {
-    handler,
-    devServer: 'src/ui/index.ts',
-  },
+  myPi,
 };
 ```
 
