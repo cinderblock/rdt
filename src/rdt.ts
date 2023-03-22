@@ -151,7 +151,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
   // Find all files in target.watchGlob
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
 
-  connection.connect().then(() => {
+  const ready = connection.connect().then(() => {
     logger.debug('Connected');
     targetConfig.handler.afterConnected({ connection, targetName, targetConfig });
   });
@@ -184,6 +184,8 @@ export async function rdt(targetName: string, targetConfig: Target) {
   const files = await items;
 
   logger.debug(`Found ${files.length} files`);
+
+  await ready;
 
   await Promise.all(
     files.map(async function (filePath) {
