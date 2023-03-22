@@ -26,6 +26,9 @@ if (require.main === module) {
         // Might as well enable source maps while we're here
         '--enable-source-maps',
 
+        // Watch for changes and re-run
+        '--watch',
+
         // Prevent warnings: "(node:29160) ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time"
         // Note, this also prevents other warnings that may be useful... Run without this flag periodically to check for other warnings
         '--no-warnings',
