@@ -155,10 +155,6 @@ export async function rdt(targetName: string, targetConfig: Target) {
     }
   }
 
-  if (!targetConfig.remote.port) {
-    targetConfig.remote.port = 22;
-  }
-
   logger.info(
     `Connecting to remote: ${targetConfig.remote.host}:${targetConfig.remote.port} as ${targetConfig.remote.username}`,
   );
