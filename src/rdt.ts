@@ -127,9 +127,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
   }
 
   logger.info(
-    `Connecting to remote: ${targetConfig.remote.host}:${targetConfig.remote.port ?? 22} as ${
-      targetConfig.remote.username
-    }`,
+    `Connecting to remote: ${targetConfig.remote.host}:${targetConfig.remote.port} as ${targetConfig.remote.username}`,
   );
 
   const connection = new SSH2Promise(targetConfig.remote);
