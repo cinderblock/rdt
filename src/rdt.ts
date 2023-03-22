@@ -169,7 +169,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
   logger.debug(`Found ${files.length} files`);
 
   await Promise.all(
-    files.map(async function* (filePath) {
+    files.map(async function (filePath) {
       const file = typeof filePath == 'string' ? filePath : filePath.relative();
 
       logger.debug(`Watching ${file}`);
