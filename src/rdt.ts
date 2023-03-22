@@ -119,8 +119,11 @@ export async function rdt(targetName: string, targetConfig: Target) {
   }
 
   if (!targetConfig.watch.options) {
-    // TODO: Ignore node_modules
-    targetConfig.watch.options = { ignore: [] };
+    targetConfig.watch.options = { ignore: ['node_modules/**', 'combined.log', 'error.log'] };
+  }
+
+  if (!targetConfig.remote.port) {
+    targetConfig.remote.port = 22;
   }
 
   logger.info(
