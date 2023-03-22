@@ -89,8 +89,16 @@ export async function rdt(targetName: string, targetConfig: Target) {
     /^(?:(?<user>[a-z_](?:[a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$))@)(?<hostname>[a-zA-Z0-9-.]+)(?::(?<port>[1-9]\d*))$/,
   );
   if (m) {
-    if (m.groups?.user) targetConfig.remote.username = m.groups?.user;
+    if (m.groups?.user) {
+      if (targetConfig.remote.username) {
+        throw new Error(`Username specified in hostname and username option`);
+      }
+      targetConfig.remote.username = m.groups?.user;
+    }
     if (m.groups?.port) {
+      if (targetConfig.remote.port) {
+        throw new Error(`Port specified in hostname and port option`);
+      }
       const i = parseInt(m.groups?.port);
       if (!(i > 0 && i < 65536)) throw new Error(`Invalid port: ${m.groups?.port}`);
       targetConfig.remote.port = i;
