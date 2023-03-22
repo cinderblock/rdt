@@ -135,7 +135,24 @@ export async function rdt(targetName: string, targetConfig: Target) {
   }
 
   if (!targetConfig.watch.options) {
-    targetConfig.watch.options = { ignore: ['node_modules/**', 'combined.log', 'error.log'] };
+    targetConfig.watch.options = { ignore: [] };
+  }
+
+  if (targetConfig.watch?.options?.ignore) {
+    if (typeof targetConfig.watch.options.ignore === 'string') {
+      targetConfig.watch.options.ignore = [targetConfig.watch.options.ignore];
+    }
+
+    if (Array.isArray(targetConfig.watch.options.ignore)) {
+      if (!targetConfig.watch.options.ignore.includes('node_modules/**'))
+        targetConfig.watch.options.ignore.push('node_modules/**');
+      if (!targetConfig.watch.options.ignore.includes('package-lock.json'))
+        targetConfig.watch.options.ignore.push('package-lock.json');
+      if (!targetConfig.watch.options.ignore.includes('yarn.lock')) targetConfig.watch.options.ignore.push('yarn.lock');
+      if (!targetConfig.watch.options.ignore.includes('combined.log'))
+        targetConfig.watch.options.ignore.push('combined.log');
+      if (!targetConfig.watch.options.ignore.includes('error.log')) targetConfig.watch.options.ignore.push('error.log');
+    }
   }
 
   if (!targetConfig.remote.port) {
