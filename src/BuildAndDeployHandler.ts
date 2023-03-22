@@ -1,22 +1,9 @@
 import SSH2Promise from 'ssh2-promise';
 import { Target } from './config';
 
-export type HandledInternallyResult = true;
-export type BlobResult = Buffer;
-export type SkippedResult = false;
-export type BuildResult = HandledInternallyResult | BlobResult | SkippedResult;
-
-export function isHandledInternally(result: BuildResult): result is HandledInternallyResult {
-  return result === true;
-}
-
-export function isBlob(result: BuildResult): result is BlobResult {
-  return Buffer.isBuffer(result);
-}
-
-export function isSkipped(result: BuildResult): result is SkippedResult {
-  return result === false;
-}
+export type BuildResult = {
+  changedFiles: string[];
+};
 
 type SharedInfo = {
   targetName: string;
@@ -50,7 +37,7 @@ export interface BuildAndDeploy {
    * Called to for each source file being deployed
    * @param options
    */
-  onFileChanged(options: SharedInfo & ConnectionInfo & { file: string }): Promise<BuildResult>;
+  onFileChanged(options: SharedInfo & ConnectionInfo & { localPath: string }): Promise<BuildResult>;
 
   afterDeployed(
     options: SharedInfo &

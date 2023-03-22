@@ -170,19 +170,19 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   await Promise.all(
     files.map(async function (filePath) {
-      const file = typeof filePath == 'string' ? filePath : filePath.relative();
+      const localPath = typeof filePath == 'string' ? filePath : filePath.relative();
 
-      logger.debug(`Watching ${file}`);
+      logger.debug(`Watching ${localPath}`);
 
       function trigger() {
         clearTimeout(changeTimeout);
 
-        targetConfig.handler.onFileChanged({ connection, targetName, targetConfig, file }).then(change);
+        targetConfig.handler.onFileChanged({ connection, targetName, targetConfig, localPath }).then(change);
       }
 
       trigger();
 
-      for await (const event of watch(file)) trigger();
+      for await (const event of watch(localPath)) trigger();
 
       // TODO: Handle new files / deleted files
     }),
