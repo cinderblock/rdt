@@ -101,6 +101,9 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
     if (process.env.SSH_AUTH_SOCK) {
       targetConfig.remote.agent = process.env.SSH_AUTH_SOCK;
+    } else if (process.platform === 'win32') {
+      logger.debug('Windows detected. Trying to use OpenSSH agent');
+      targetConfig.remote.agent = '\\\\.\\pipe\\openssh-ssh-agent';
     } else {
       const key = await findPrivateKey();
       if (key) {
