@@ -195,5 +195,6 @@ export async function rdt(targetName: string, targetConfig: Target) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  logger.warn('Sleeping');
   await sleep(100000000);
 }
