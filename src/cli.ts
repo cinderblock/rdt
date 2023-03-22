@@ -16,7 +16,7 @@ if (require.main === module) {
       execArgv: [
         ...process.execArgv,
 
-        // TODO: Do we need to use a different loader for older versions of node?
+        // TODO: Do we need to use a different option (--loader) for older versions of node?
         '--experimental-loader',
         'esbuild-register/loader',
 
