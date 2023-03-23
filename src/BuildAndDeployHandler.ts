@@ -39,13 +39,5 @@ export interface BuildAndDeploy {
    */
   onFileChanged(options: SharedInfo & ConnectionInfo & { localPath: string }): Promise<BuildResult>;
 
-  afterDeployed(
-    options: SharedInfo &
-      ConnectionInfo & {
-        /**
-         * List of files changed since the last deploy
-         */
-        changedFiles: BuildResult[];
-      },
-  ): Promise<void>;
+  afterDeployed(options: SharedInfo & ConnectionInfo & BuildResult): Promise<void>;
 }
