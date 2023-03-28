@@ -3,17 +3,33 @@ import { Target } from './config';
 
 export type BuildResult = {
   changedFiles: string[];
+
+  // TODO: deleted files?
 };
 
 type SharedInfo = {
   targetName: string;
   targetConfig: Target;
 };
+
 type ConnectionInfo = {
   /**
    * The remote connection
    */
   connection: SSH2Promise;
+};
+
+type FileChangeInfo = {
+  localPath: string;
+
+  /**
+   * The type of change that occurred.
+   * - add: A new file was added
+   * - empty: A file's contents were emptied
+   * - change: A file's contents were changed
+   * - remove: A file was removed
+   */
+  changeType: 'add' | 'empty' | 'change' | 'remove';
 };
 
 export interface BuildAndDeploy {
@@ -37,7 +53,7 @@ export interface BuildAndDeploy {
    * Called to for each source file being deployed
    * @param options
    */
-  onFileChanged(options: SharedInfo & ConnectionInfo & { localPath: string }): Promise<BuildResult>;
+  onFileChanged(options: SharedInfo & ConnectionInfo & FileChangeInfo): Promise<BuildResult>;
 
   afterDeployed(options: SharedInfo & ConnectionInfo & BuildResult): Promise<void>;
 }
