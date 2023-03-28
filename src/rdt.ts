@@ -20,6 +20,12 @@ export async function help(...args: string[]) {
   console.log('  $ rdt dev my-target # Connects to my-target as hostname unless it matches an existing target');
 }
 
+function addToArrayUnique<T>(array: T[], ...items: T[]) {
+  for (const item of items) {
+    if (!array.includes(item)) array.push(item);
+  }
+}
+
 /**
  * Convert a list of cli arguments into a target name and target config
  *
@@ -152,14 +158,16 @@ export async function rdt(targetName: string, targetConfig: Target) {
     }
 
     if (Array.isArray(targetConfig.watch.options.ignore)) {
-      if (!targetConfig.watch.options.ignore.includes('node_modules/**'))
-        targetConfig.watch.options.ignore.push('node_modules/**');
-      if (!targetConfig.watch.options.ignore.includes('package-lock.json'))
-        targetConfig.watch.options.ignore.push('package-lock.json');
-      if (!targetConfig.watch.options.ignore.includes('yarn.lock')) targetConfig.watch.options.ignore.push('yarn.lock');
-      if (!targetConfig.watch.options.ignore.includes('combined.log'))
-        targetConfig.watch.options.ignore.push('combined.log');
-      if (!targetConfig.watch.options.ignore.includes('error.log')) targetConfig.watch.options.ignore.push('error.log');
+      const builtInIgnore = [
+        'node_modules/**',
+        'package-lock.json',
+        'yarn.lock',
+        'combined.log',
+        'error.log',
+        'rdt.ts',
+      ];
+
+      addToArrayUnique(targetConfig.watch.options.ignore, ...builtInIgnore);
     }
   }
 
