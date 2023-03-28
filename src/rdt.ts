@@ -191,7 +191,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
     targetConfig.handler.afterDisconnected({ targetName, targetConfig });
   });
 
-  const changes: BuildResult[] = [];
+  const changedFilesOnRemote: string[] = [];
 
   // This debounce is not perfect but gets the job done.
   // It should start the timer when the last file is changed instead of when the last build is finished
@@ -200,14 +200,15 @@ export async function rdt(targetName: string, targetConfig: Target) {
     clearTimeout(changeTimeout);
     changeTimeout = setTimeout(() => {
       // Make a copy of changes and empty it
-      const changedFiles = changes.slice();
-      changes.length = 0;
+      const changedFiles = changedFilesOnRemote.slice();
+      changedFilesOnRemote.length = 0;
 
       logger.debug('Deployed');
 
       targetConfig.handler.afterDeployed({ connection, targetName, targetConfig, changedFiles });
     }, targetConfig.debounceTime ?? 200);
-    changes.push(r);
+
+    changedFilesOnRemote.push(...r.changedFiles);
   }
 
   const files = await items;
@@ -225,7 +226,9 @@ export async function rdt(targetName: string, targetConfig: Target) {
       function trigger() {
         clearTimeout(changeTimeout);
 
-        targetConfig.handler.onFileChanged({ connection, targetName, targetConfig, localPath }).then(change);
+        targetConfig.handler
+          .onFileChanged({ connection, targetName, targetConfig, localPath, changeType: 'change' })
+          .then(change);
       }
 
       trigger();
