@@ -1,5 +1,7 @@
 import winston from 'winston';
 
+export const logFiles = ['error.log', 'combined.log'];
+
 const logger = winston.createLogger({
   level: 'debug',
   format: winston.format.json(),

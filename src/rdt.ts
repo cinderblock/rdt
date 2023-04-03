@@ -1,5 +1,5 @@
 import { config, Target } from './config';
-import logger from './log';
+import logger, { logFiles } from './log';
 import SSH2Promise from 'ssh2-promise';
 import { glob } from 'glob';
 import { watch } from 'fs/promises';
@@ -158,14 +158,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
     }
 
     if (Array.isArray(targetConfig.watch.options.ignore)) {
-      const builtInIgnore = [
-        'node_modules/**',
-        'package-lock.json',
-        'yarn.lock',
-        'combined.log',
-        'error.log',
-        'rdt.ts',
-      ];
+      const builtInIgnore = ['node_modules/**', 'package-lock.json', 'yarn.lock', ...logFiles, 'rdt.ts'];
 
       addToArrayUnique(targetConfig.watch.options.ignore, ...builtInIgnore);
     }
