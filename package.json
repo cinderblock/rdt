@@ -3,9 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "description": "A developer tool for working on lightweight remote systems.",
-  "bin": ".dist/cli.js",
-  "main": ".dist/cli.js",
-  "types": ".dist/cli.d.ts",
+  "bin": {
+    "rdt": ".dist/rdt.js"
+  },
+  "main": ".dist/rdt.js",
+  "types": ".dist/rdt.d.ts",
   "files": [
     ".dist/*"
   ],

@@ -71,7 +71,7 @@ export async function parseArgs(...args: string[]): Promise<Options> {
   const skipDts = await extractNamedFlag(args, '--skip-dts');
   const watch = await extractNamedFlag(args, '--watch');
 
-  const [distDir = '.dist', bundleName = 'cli.js'] = args;
+  const [distDir = '.dist', bundleName = 'rdt.js'] = args;
   return {
     distDir,
     bundleName,
@@ -131,7 +131,7 @@ async function build({ distDir: outDir, bundleName, skipDts, watch }: Options) {
     plugins,
     outdir: outDir,
     bundle: true,
-    entryPoints: [join('src', 'cli.ts')],
+    entryPoints: [join('src', 'rdt.ts')],
     external: [
       // TODO: Load this list from package.json#dependencies
       'esbuild',
@@ -177,9 +177,11 @@ async function packageJson({ distDir, bundleName, watch }: Options) {
   // Filter scripts and other unwanted parts
   const distPackageJson = {
     ...packageJson.default,
-    bin: bundleName,
+    bin: {
+      rdt: bundleName,
+    },
     main: bundleName,
-    types: 'cli.d.ts',
+    types: 'rdt.d.ts',
     private: undefined,
     type: outputESM ? 'module' : undefined,
     files: undefined,
