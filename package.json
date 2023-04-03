@@ -17,6 +17,7 @@
     "watch": "npm run build-watch",
     "run": "node --enable-source-maps .dist",
     "start": "npm run build && npm run run",
+    "publish": "npm run prepare && cd .dist && npm publish --access public",
     "prepare": "npm run build"
   },
   "repository": {
