@@ -15,8 +15,8 @@ The API and configuration format might change.
 ## Installation
 
 ```bash
-npm install -D rdt                # Npm package
-npm install -D cinderblock/rdt    # Github repository
+npm install -D @cinderblock/rdt  # Npm package
+npm install -D cinderblock/rdt   # Github repository
 ```
 
 ## Usage

@@ -1,8 +1,8 @@
 {
-  "name": "rdt",
+  "name": "@cinderblock/rdt",
   "private": true,
   "version": "0.0.0",
-  "description": "",
+  "description": "A developer tool for working on lightweight remote systems.",
   "bin": ".dist/cli.js",
   "main": ".dist/cli.js",
   "types": ".dist/cli.d.ts",
