@@ -9,6 +9,7 @@ import { watch } from 'fs/promises';
 import { BuildResult } from './BuildAndDeployHandler';
 import { findPrivateKey } from './util/findPrivateKey';
 import { cli } from './cli';
+import { addToArrayUnique } from './util/addToArrayUnique';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
