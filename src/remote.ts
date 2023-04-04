@@ -10,7 +10,7 @@ import log from './log';
 log.debug(`Hello from remote.ts!`);
 
 function dirOf(path: string) {
-  return path.replace(/\/[^\/]+$/, '');
+  return path.replace(/\/?[^\/]+$/, '');
 }
 
 export class Remote {
