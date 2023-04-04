@@ -44,10 +44,10 @@ export type Target = {
    * File that exports a "BuildAndDeploy" object, created by "createBuildAndDeployHandler".
    *
    * Events are:
-   *  - afterConnected
-   *  - afterDisconnected
+   *  - onConnected
+   *  - onDisconnected
    *  - onFileChanged (also called on startup for all files)
-   *  - afterDeployed
+   *  - onDeployed
    */
   handler: BuildAndDeploy;
 
@@ -101,7 +101,7 @@ export type Config = {
   /**
    * The default target to build
    */
-  default?: string | undefined;
+  defaultTarget?: string | undefined;
 
   /**
    * The targets to build
@@ -113,7 +113,7 @@ export async function config(): Promise<Config> {
   logger.info('Loading config...');
   // Open `rdt.ts` in the current directory
   const {
-    default: { version, default: defaultTarget, targets },
+    default: { version, defaultTarget, targets },
   } = await import(`file://${process.cwd()}/rdt.ts`);
   // TODO: Check more directories?
 
@@ -125,5 +125,5 @@ export async function config(): Promise<Config> {
 
   // TODO: Validate the config
 
-  return { version, default: defaultTarget, targets };
+  return { version, defaultTarget, targets };
 }

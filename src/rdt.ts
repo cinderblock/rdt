@@ -27,13 +27,13 @@ export async function rdt(targetName: string, targetConfig: Target) {
    *  - Run `onFileChanged` hook from `rdt.ts`
    *
    * After all `onFileChanged` hooks have run:
-   * - Run `afterDeployed` hook from `rdt.ts`
+   * - Run `onDeployed` hook from `rdt.ts`
    *
    * On Connection:
-   * - Run `afterConnected` hook from `rdt.ts`
+   * - Run `onConnected` hook from `rdt.ts`
    *
    * On Disconnect:
-   * - Run `afterDisconnected` hook from `rdt.ts`
+   * - Run `onDisconnected` hook from `rdt.ts`
    */
 
   if (typeof targetConfig.devServer === 'string') {
@@ -131,13 +131,13 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   const ready = connection.connect().then(() => {
     logger.debug('Connected');
-    targetConfig.handler.afterConnected({ connection, targetName, targetConfig });
+    targetConfig.handler.onConnected({ connection, targetName, targetConfig });
   });
 
   // TODO: Is this right?
   connection.on('close', () => {
     logger.debug('Disconnected');
-    targetConfig.handler.afterDisconnected({ targetName, targetConfig });
+    targetConfig.handler.onDisconnected({ targetName, targetConfig });
   });
 
   const changedFilesOnRemote: string[] = [];
@@ -154,7 +154,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
       logger.debug('Deployed');
 
-      targetConfig.handler.afterDeployed({ connection, targetName, targetConfig, changedFiles });
+      targetConfig.handler.onDeployed({ connection, targetName, targetConfig, changedFiles });
     }, targetConfig.debounceTime ?? 200);
 
     changedFilesOnRemote.push(...r.changedFiles);

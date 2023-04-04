@@ -26,43 +26,39 @@ Create a file `rdt.ts` in the root of your project that exports a `targets` obje
 ### Example `rdt.ts`
 
 ```ts
-import { Targets, BuildAndDeploy, logger } from 'rdt';
+import { Targets, logger } from 'rdt';
 
-const handler: BuildAndDeploy = {
-  async afterConnected({ connection, targetName, targetConfig }) {
-    logger.info('connected:', targetName);
-    logger.info(targetConfig);
-  },
-
-  async afterDisconnected({ targetName, targetConfig }) {
-    logger.info('disconnected:', targetName);
-  },
-
-  async onFileChanged({ connection, targetName, targetConfig, localPath }) {
-    return true;
-  },
-
-  async afterDeployed({ connection, targetName, targetConfig, changedFiles }) {
-    logger.info('deployed:', targetName);
-  },
-};
-
-export default 'myPi';
-
-const myPi: Target = {
-  handler,
-  devServer: 'src/ui/index.ts',
-};
+export const defaultTarget = 'myPi';
 
 export const targets: Targets = {
-  myPi,
+  myPi: {
+    handler: {
+      async onConnected({ connection, targetName, targetConfig }) {
+        logger.info('connected:', targetName);
+        logger.info(targetConfig);
+      },
+
+      async onDisconnected({ targetName, targetConfig }) {
+        logger.info('disconnected:', targetName);
+      },
+
+      async onFileChanged({ connection, targetName, targetConfig, localPath }) {
+        return true;
+      },
+
+      async onDeployed({ connection, targetName, targetConfig, changedFiles }) {
+        logger.info('deployed:', targetName);
+      },
+    },
+    devServer: 'src/ui/index.ts',
+  },
 };
 ```
 
 ### `rdt dev [target]` - Start the development server
 
 ```
-npx rdt dev         # Run first target in rdt.yaml
+npx rdt dev         # Run default target
 npx rdt dev myPi    # Run target: myPi
 npx rdt dev otherPi # Run target: otherPi
 ```
