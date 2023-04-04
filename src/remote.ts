@@ -161,6 +161,10 @@ export class Remote {
 
     if (current === content) return;
 
+    if (content === null) {
+      return this.sftp.unlink(path);
+    }
+
     await this.mkdirFor(path);
 
     logger.debug(`writing file: ${path}`);
