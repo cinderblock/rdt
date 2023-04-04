@@ -16,8 +16,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Publish
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        working-directory: .dist
-        run: npm publish
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: npm publish .dist
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
