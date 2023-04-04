@@ -10,6 +10,7 @@ import { BuildResult } from './BuildAndDeployHandler';
 import { findPrivateKey } from './util/findPrivateKey';
 import { cli } from './cli';
 import { addToArrayUnique } from './util/addToArrayUnique';
+import { Remote } from './remote';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
@@ -120,24 +121,26 @@ export async function rdt(targetName: string, targetConfig: Target) {
     }
   }
 
-  logger.info(
-    `Connecting to remote: ${targetConfig.remote.host}:${targetConfig.remote.port} as ${targetConfig.remote.username}`,
-  );
+  const { remote } = targetConfig;
 
-  const connection = new SSH2Promise(targetConfig.remote);
+  logger.info(`Connecting to remote: ${remote.host}:${remote.port} as ${remote.username}`);
+
+  const connection = new SSH2Promise(remote);
+
+  const rdt = new Remote(targetName, targetConfig, connection);
 
   // Find all files in target.watchGlob
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
 
   const ready = connection.connect().then(async () => {
     logger.debug('Connected');
-    await targetConfig.handler.onConnected({ connection, targetName, targetConfig });
+    await targetConfig.handler.onConnected({ rdt });
   });
 
   // TODO: Is this right?
   connection.on('close', () => {
     logger.debug('Disconnected');
-    targetConfig.handler.onDisconnected({ targetName, targetConfig });
+    targetConfig.handler.onDisconnected({ rdt });
   });
 
   const changedFilesOnRemote: string[] = [];
@@ -154,7 +157,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
       logger.debug('Deployed');
 
-      targetConfig.handler.onDeployed({ connection, targetName, targetConfig, changedFiles });
+      targetConfig.handler.onDeployed({ changedFiles, rdt });
     }, targetConfig.debounceTime ?? 200);
 
     changedFilesOnRemote.push(...r.changedFiles);
@@ -175,9 +178,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
       function trigger() {
         clearTimeout(changeTimeout);
 
-        targetConfig.handler
-          .onFileChanged({ connection, targetName, targetConfig, localPath, changeType: 'change' })
-          .then(change);
+        targetConfig.handler.onFileChanged({ localPath, changeType: 'change', rdt }).then(change);
       }
 
       trigger();
@@ -228,6 +229,11 @@ if (require.main === module) {
       logger.warn('Node version > 19 detected. Has the --experimental-loader flag been removed?');
     }
   } else {
+    process.on('unhandledRejection', (reason, p) => {
+      logger.error(`Unhandled Rejection: ${reason}`);
+      p.then(e => logger.error(e)).catch(e => logger.error(e));
+    });
+
     logger.debug('Running with esbuild-register loader');
     cli(...process.argv.slice(2))
       .then(() => logger.debug('Normal exit'))

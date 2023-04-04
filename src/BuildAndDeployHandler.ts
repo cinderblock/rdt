@@ -1,5 +1,6 @@
 import SSH2Promise from 'ssh2-promise';
 import { Target } from './config';
+import { Remote } from './remote';
 
 export type BuildResult = {
   changedFiles: string[];
@@ -8,15 +9,7 @@ export type BuildResult = {
 };
 
 type SharedInfo = {
-  targetName: string;
-  targetConfig: Target;
-};
-
-type ConnectionInfo = {
-  /**
-   * The remote connection
-   */
-  connection: SSH2Promise;
+  rdt: Remote;
 };
 
 type FileChangeInfo = {
@@ -39,7 +32,7 @@ export interface BuildAndDeploy {
    * @param options
    * @return Promise rdt will wait for before continuing remote dependent tasks
    */
-  onConnected(options: SharedInfo & ConnectionInfo & {}): Promise<void>;
+  onConnected(options: SharedInfo & {}): Promise<void>;
 
   /**
    * Called after the remote system is disconnected from
@@ -53,7 +46,7 @@ export interface BuildAndDeploy {
    * Called to for each source file being deployed
    * @param options
    */
-  onFileChanged(options: SharedInfo & ConnectionInfo & FileChangeInfo): Promise<BuildResult>;
+  onFileChanged(options: SharedInfo & FileChangeInfo): Promise<BuildResult>;
 
-  onDeployed(options: SharedInfo & ConnectionInfo & BuildResult): Promise<void>;
+  onDeployed(options: SharedInfo & BuildResult): Promise<void>;
 }
