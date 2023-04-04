@@ -72,7 +72,7 @@ Use `npx` or directly in `package.json` scripts without `npx`:
     "dev": "rdt dev"
   },
   "devDependencies": {
-    "rdt": "^0.0.1"
+    "rdt": "^0.1.1"
   }
 }
 ```
