@@ -5,17 +5,21 @@
 import SSH2Promise from 'ssh2-promise';
 import { Target } from './config';
 import { BuildResult } from './BuildAndDeployHandler';
-import log from './log';
+import logger from './log';
 
-log.debug(`Hello from remote.ts!`);
+logger.debug(`Hello from remote.ts!`);
 
 function dirOf(path: string) {
   return path.replace(/\/?[^\/]+$/, '');
 }
 
 export class Remote {
+  public sftp;
+
   constructor(public targetName: string, public targetConfig: Target, public connection: SSH2Promise) {
-    log.debug(`Hello from Remote constructor!`);
+    logger.debug(`Hello from Remote constructor!`);
+
+    this.sftp = connection.sftp();
   }
 
   public async run(
@@ -45,15 +49,34 @@ export class Remote {
   }
 
   public async runLogging(command: string, args: string[] = []) {
+    const log = logger.child({ command });
     const socket = await this.connection.spawn(command, args);
 
     const exitCode = await new Promise<number>(resolve => {
+      let stdout = '';
       socket.stdout.on('data', (data: Buffer) => {
-        log.info(data.toString().trimEnd());
+        stdout += data.toString();
+        while (true) {
+          const i = stdout.indexOf('\n');
+          if (i === -1) break;
+          const line = stdout.slice(0, i).trimEnd();
+          stdout = stdout.slice(i + 1);
+          log.info(line);
+        }
       });
+
+      let stderr = '';
       socket.stderr.on('data', (data: Buffer) => {
-        log.error(data.toString().trimEnd());
+        stderr += data.toString();
+        while (true) {
+          const i = stderr.indexOf('\n');
+          if (i === -1) break;
+          const line = stderr.slice(0, i).trimEnd();
+          stderr = stderr.slice(i + 1);
+          log.error(line);
+        }
       });
+
       socket.on('close', resolve);
     });
 
@@ -65,7 +88,9 @@ export class Remote {
   }
 
   public async aptUpdate() {
-    return this.runLoggingSudo('apt-get update');
+    if (await this.runLoggingSudo('apt-get update')) {
+      throw new Error('Failed to update apt');
+    }
   }
 
   public async aptInstall(packages: string[]) {
@@ -104,19 +129,42 @@ export class Remote {
     return this.runLogging(`npm install`);
   }
 
+  public async mkdirFor(path: string) {
+    logger.debug(`mkdirFor: ${path}`);
+    const dir = dirOf(path);
+    if (!dir) return;
+
+    const stat = await this.sftp.stat(dir).catch(() => null);
+
+    if (stat) {
+      if (!stat.isDirectory()) {
+        throw new Error(`Not a directory: ${dir}`);
+      }
+
+      logger.debug(`Directory already exists: ${dir}`);
+
+      return;
+    }
+
+    await this.mkdirFor(dir);
+
+    logger.debug(`creating directory: ${dir}`);
+
+    await this.sftp.mkdir(dir);
+  }
+
   public async ensureFileIs(path: string, content: string) {
     // Check if file exists and has the correct content. If not, create it (and create the directory if needed).
-    log.debug(`ensureFileIs: ${path}`);
+    logger.debug(`ensureFileIs: ${path}`);
 
-    return;
-
-    const current = await this.connection
-      .sftp()
-      .readFile(path)
-      .catch(() => null);
+    const current = await this.sftp.readFile(path).catch(() => null);
 
     if (current === content) return;
 
-    await this.connection.sftp().mkdir(dirOf(path));
+    await this.mkdirFor(path);
+
+    logger.debug(`writing file: ${path}`);
+
+    await this.sftp.writeFile(path, content, {});
   }
 }
