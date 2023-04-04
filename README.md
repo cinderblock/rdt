@@ -1,6 +1,7 @@
 # `rdt` - Remote Development Tool
 
 [![npm version](https://badge.fury.io/js/@cinderblock%2Frdt.svg)](https://badge.fury.io/js/@cinderblock%2Frdt)
+[![.github/workflows/build.yaml](https://github.com/cinderblock/rdt/actions/workflows/build.yaml/badge.svg)](https://github.com/cinderblock/rdt/actions/workflows/build.yaml)
 
 A Node.js development tool for lightweight remote systems.
 Use your high performance development machine to build and serve your project to a low performance remote device.
