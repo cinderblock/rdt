@@ -178,7 +178,13 @@ export async function rdt(targetName: string, targetConfig: Target) {
       function trigger() {
         clearTimeout(changeTimeout);
 
-        targetConfig.handler.onFileChanged({ localPath, changeType: 'change', rdt }).then(change);
+        targetConfig.handler
+          .onFileChanged({ localPath, changeType: 'change', rdt })
+          .then(change)
+          .catch(e => {
+            logger.error(`Error while deploying ${localPath}`);
+            logger.error(e);
+          });
       }
 
       trigger();
