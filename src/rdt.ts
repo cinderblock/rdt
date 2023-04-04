@@ -129,9 +129,9 @@ export async function rdt(targetName: string, targetConfig: Target) {
   // Find all files in target.watchGlob
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
 
-  const ready = connection.connect().then(() => {
+  const ready = connection.connect().then(async () => {
     logger.debug('Connected');
-    targetConfig.handler.onConnected({ connection, targetName, targetConfig });
+    await targetConfig.handler.onConnected({ connection, targetName, targetConfig });
   });
 
   // TODO: Is this right?
