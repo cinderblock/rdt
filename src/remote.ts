@@ -4,14 +4,8 @@
 
 import SSH2Promise from 'ssh2-promise';
 import { Target } from './config';
-import { BuildResult } from './BuildAndDeployHandler';
 import logger from './log';
-
-logger.debug(`Hello from remote.ts!`);
-
-function dirOf(path: string) {
-  return path.replace(/\/?[^\/]+$/, '');
-}
+import { dirOf } from './util/dirOf';
 
 export class Remote {
   public sftp;
