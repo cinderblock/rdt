@@ -176,10 +176,13 @@ export async function rdt(targetName: string, targetConfig: Target) {
       logger.debug(`Watching ${localPath}`);
 
       // TODO: debounce file changes
+      let fileChangeTimeout: NodeJS.Timeout | undefined;
 
       function trigger(info?: FileChangeInfo<string>) {
         clearTimeout(changeTimeout);
+        clearTimeout(fileChangeTimeout);
 
+        fileChangeTimeout = setTimeout(() => {
         targetConfig.handler
           .onFileChanged({ localPath, changeType: 'change', rdt, info })
           .then(change)
@@ -187,6 +190,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
             logger.error(`Error while deploying ${localPath}`);
             logger.error(e);
           });
+        }, targetConfig.debounceTime ?? 200);
       }
 
       trigger();
