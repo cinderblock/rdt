@@ -115,6 +115,7 @@ export class Remote {
     opts: {
       sudo?: boolean;
       logging?: boolean;
+      suppressError?: boolean;
     } = {},
   ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     if (opts.sudo) {
@@ -161,6 +162,10 @@ export class Remote {
       socket.on('close', resolve);
       socket.on('error', reject);
     });
+
+    if (!opts.suppressError && exitCode !== 0) {
+      throw new Error(`Command failed: ${command} ${args.join(' ')}\n\n${stderr}`);
+    }
 
     return { exitCode, stdout, stderr };
   }
