@@ -4,23 +4,43 @@ export type SystemdService = {
   };
   Service: {
     ExecStart: string;
+
     WorkingDirectory?: string;
+
+    User?: string;
+    Group?: string;
+
+    /**
+     * @default 'no'
+     */
     Restart?: 'always' | 'on-failure' | 'on-abnormal' | 'on-watchdog' | 'on-abort' | 'no';
+
     Environment?: string[];
     EnvironmentFile?: string[];
+
+    /**
+     * @default 'simple'
+     */
+    Type?: 'simple' | 'forking' | 'oneshot' | 'dbus' | 'notify' | 'idle';
+
+    ExecStartPre?: string[];
+    ExecStartPost?: string[];
+    ExecReload?: string;
+    ExecStop?: string;
   };
   Install: {
     WantedBy: string;
   };
 };
 
-function generateServiceSection(section: { [key: string]: string | string[] }) {
+type Section = { [key: string]: string | string[] };
+type Sections = { [key: string]: Section };
+
+function generateServiceSection(section: Section) {
   return Object.entries(section)
     .map(([k, v]) => {
-      if (Array.isArray(v)) {
-        return v.map(v => `${k}=${v}\n`).join('');
-      }
-      return `${k}=${v}\n`;
+      if (!Array.isArray(v)) v = [v];
+      return v.map(v => `${k}=${v}\n`).join('');
     })
     .join('');
 }
