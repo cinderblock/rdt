@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/@cinderblock%2Frdt.svg)](https://badge.fury.io/js/@cinderblock%2Frdt)
 [![Build](https://github.com/cinderblock/rdt/actions/workflows/build.yaml/badge.svg?branch=master)](https://github.com/cinderblock/rdt/actions/workflows/build.yaml)
-[![Build & Publish](https://github.com/cinderblock/rdt/actions/workflows/build.yaml/badge.svg?event=push)](https://github.com/cinderblock/rdt/actions/workflows/build.yaml)
+[![Publish](https://github.com/cinderblock/rdt/actions/workflows/publish.yaml/badge.svg?event=push)](https://github.com/cinderblock/rdt/actions/workflows/publish.yaml)
 
 A Node.js development tool for lightweight remote systems.
 Use your high performance development machine to build and serve your project to a low performance remote device.
