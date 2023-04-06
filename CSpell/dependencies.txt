@@ -12,3 +12,6 @@ deepmerge
 
 tsbuildinfo
 codepaths
+
+autoremove
+autoclean
