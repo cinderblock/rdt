@@ -183,13 +183,13 @@ export async function rdt(targetName: string, targetConfig: Target) {
         clearTimeout(fileChangeTimeout);
 
         fileChangeTimeout = setTimeout(() => {
-        targetConfig.handler
-          .onFileChanged({ localPath, changeType: 'change', rdt, info })
-          .then(change)
-          .catch(e => {
-            logger.error(`Error while deploying ${localPath}`);
-            logger.error(e);
-          });
+          targetConfig.handler
+            .onFileChanged({ localPath, changeType: 'change', rdt, info })
+            .then(change)
+            .catch(e => {
+              logger.error(`Error while deploying ${localPath}`);
+              logger.error(e);
+            });
         }, targetConfig.debounceTime ?? 200);
       }
 
