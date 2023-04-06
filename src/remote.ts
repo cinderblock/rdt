@@ -5,6 +5,7 @@
 import SSH2Promise from 'ssh2-promise';
 import { Target } from './config';
 import logger from './log';
+import { SystemdService, generateServiceFileContents } from './Systemd';
 import { dirOf } from './util/dirOf';
 
 export class Remote {
@@ -12,6 +13,7 @@ export class Remote {
   public apt;
   public npm;
   public fs;
+  public systemd;
 
   constructor(public targetName: string, public targetConfig: Target, public connection: SSH2Promise) {
     logger.debug(`Hello from Remote constructor!`);
@@ -105,6 +107,74 @@ export class Remote {
         logger.debug(`writing file: ${path}`);
 
         await this.sftp.writeFile(path, content, {});
+      },
+    };
+
+    this.systemd = {
+      service: {
+        setup: async (serviceName: string, serviceConfig: SystemdService, opts: { userService?: boolean } = {}) => {
+          logger.debug(`setupSystemdService: ${serviceName}`);
+          const sudo = !opts.userService;
+          const user = opts.userService ? ' --user' : '';
+
+          await this.fs.ensureFileIs(
+            `${sudo ? '/etc/systemd/system' : '.config/systemd/user'}/${serviceName}.service`,
+            generateServiceFileContents(serviceConfig),
+          );
+
+          await this.run(`systemctl daemon-reload`, [], { sudo, logging: true });
+
+          await this.run(`systemctl${user} enable ${serviceName}`, [], { sudo, logging: true });
+        },
+
+        start: async (serviceName: string, opts: { userService?: boolean } = {}) => {
+          logger.debug(`startService: ${serviceName}`);
+          const sudo = !opts.userService;
+          const user = opts.userService ? ' --user' : '';
+
+          await this.run(`systemctl${user} start ${serviceName}`, [], { sudo, logging: true });
+        },
+
+        stop: async (serviceName: string, opts: { userService?: boolean } = {}) => {
+          logger.debug(`stopService: ${serviceName}`);
+          const sudo = !opts.userService;
+          const user = opts.userService ? ' --user' : '';
+
+          await this.run(`systemctl${user} stop ${serviceName}`, [], { sudo, logging: true });
+        },
+
+        enable: async (serviceName: string, opts: { userService?: boolean } = {}) => {
+          logger.debug(`enableService: ${serviceName}`);
+          const sudo = !opts.userService;
+          const user = opts.userService ? ' --user' : '';
+
+          await this.run(`systemctl${user} enable ${serviceName}`, [], { sudo, logging: true });
+        },
+
+        disable: async (serviceName: string, opts: { userService?: boolean } = {}) => {
+          logger.debug(`disableService: ${serviceName}`);
+          const sudo = !opts.userService;
+          const user = opts.userService ? ' --user' : '';
+
+          await this.run(`systemctl${user} disable ${serviceName}`, [], { sudo, logging: true });
+        },
+      },
+
+      journal: {
+        service: async (serviceName: string, opts: { userService?: boolean } = {}) => {
+          logger.debug(`journalService: ${serviceName}`);
+          const user = opts.userService ? ' --user' : '';
+
+          return this.run(`journalctl${user} --unit ${serviceName}`, [], { logging: true });
+        },
+
+        follow: async (serviceName: string, opts: { userService?: boolean } = {}) => {
+          logger.debug(`journalFollow: ${serviceName}`);
+          const user = opts.userService ? ' --user' : '';
+
+          // TODO: return something so that we can control this process...
+          return this.run(`journalctl${user} --follow --unit ${serviceName}`, [], { logging: true });
+        },
       },
     };
   }
