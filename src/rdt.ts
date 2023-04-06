@@ -109,7 +109,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
     targetConfig.watch.options = { ignore: [] };
   }
 
-  if (targetConfig.watch?.options?.ignore) {
+  if (targetConfig.watch.options.ignore) {
     if (typeof targetConfig.watch.options.ignore === 'string') {
       targetConfig.watch.options.ignore = [targetConfig.watch.options.ignore];
     }
