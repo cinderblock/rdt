@@ -127,7 +127,7 @@ export class Remote {
     let stdout = '';
     let stderr = '';
 
-    const exitCode = await new Promise<number>(resolve => {
+    const exitCode = await new Promise<number>((resolve, reject) => {
       let stdoutBuffer = '';
       socket.stdout.on('data', (data: Buffer) => {
         stdout += data.toString();
@@ -159,6 +159,7 @@ export class Remote {
       });
 
       socket.on('close', resolve);
+      socket.on('error', reject);
     });
 
     return { exitCode, stdout, stderr };
