@@ -5,7 +5,7 @@ import { config, Target } from './config';
 import logger, { logFiles } from './log';
 import SSH2Promise from 'ssh2-promise';
 import { glob } from 'glob';
-import { watch } from 'fs/promises';
+import { FileChangeInfo, watch } from 'fs/promises';
 import { BuildResult } from './BuildAndDeployHandler';
 import { findPrivateKey } from './util/findPrivateKey';
 import { cli } from './cli';
@@ -175,11 +175,13 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
       logger.debug(`Watching ${localPath}`);
 
-      function trigger() {
+      // TODO: debounce file changes
+
+      function trigger(info?: FileChangeInfo<string>) {
         clearTimeout(changeTimeout);
 
         targetConfig.handler
-          .onFileChanged({ localPath, changeType: 'change', rdt })
+          .onFileChanged({ localPath, changeType: 'change', rdt, info })
           .then(change)
           .catch(e => {
             logger.error(`Error while deploying ${localPath}`);
@@ -189,7 +191,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
       trigger();
 
-      for await (const event of watch(localPath)) trigger();
+      for await (const event of watch(localPath)) trigger(event);
 
       // TODO: Handle new files / deleted files
     }),

@@ -1,6 +1,7 @@
 import SSH2Promise from 'ssh2-promise';
 import { Target } from './config';
 import { Remote } from './remote';
+import { FileChangeInfo as FileChangeInfoNode } from 'fs/promises';
 
 export type BuildResult = {
   changedFiles: string[];
@@ -23,6 +24,8 @@ type FileChangeInfo = {
    * - remove: A file was removed
    */
   changeType: 'add' | 'empty' | 'change' | 'remove';
+
+  info: FileChangeInfoNode<string> | undefined;
 };
 
 export interface BuildAndDeploy {
