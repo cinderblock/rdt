@@ -35,7 +35,7 @@ export interface BuildAndDeploy {
    * @param options
    * @return Promise rdt will wait for before continuing remote dependent tasks
    */
-  onConnected(options: SharedInfo & {}): Promise<void>;
+  onConnected?(options: SharedInfo & {}): Promise<void>;
 
   /**
    * Called after the remote system is disconnected from
@@ -43,13 +43,13 @@ export interface BuildAndDeploy {
    * @param options
    * @return Promise that we will wait for before reconnecting automatically
    */
-  onDisconnected(options: SharedInfo & {}): Promise<void>;
+  onDisconnected?(options: SharedInfo & {}): Promise<void>;
 
   /**
    * Called to for each source file being deployed
    * @param options
    */
-  onFileChanged(options: SharedInfo & FileChangeInfo): Promise<BuildResult>;
+  onFileChanged?(options: SharedInfo & FileChangeInfo): Promise<BuildResult>;
 
-  onDeployed(options: SharedInfo & BuildResult): Promise<void>;
+  onDeployed?(options: SharedInfo & BuildResult): Promise<void>;
 }

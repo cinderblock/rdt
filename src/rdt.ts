@@ -134,12 +134,24 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   const ready = connection.connect().then(async () => {
     logger.debug('Connected');
+
+    if (!targetConfig.handler.onConnected) {
+      logger.debug('No onConnected hook');
+      return;
+    }
+
     await targetConfig.handler.onConnected({ rdt });
   });
 
   // TODO: Is this right?
   connection.on('close', () => {
     logger.debug('Disconnected');
+
+    if (!targetConfig.handler.onDisconnected) {
+      logger.debug('No onDisconnected hook');
+      return;
+    }
+
     targetConfig.handler.onDisconnected({ rdt });
   });
 
@@ -156,6 +168,11 @@ export async function rdt(targetName: string, targetConfig: Target) {
       changedFilesOnRemote.length = 0;
 
       logger.debug('Deployed');
+
+      if (!targetConfig.handler.onDeployed) {
+        logger.debug(`No onDeployed hook. Changed files: ${changedFiles.join(', ')}`);
+        return;
+      }
 
       targetConfig.handler.onDeployed({ changedFiles, rdt });
     }, targetConfig.debounceTime ?? 200);
@@ -183,6 +200,11 @@ export async function rdt(targetName: string, targetConfig: Target) {
         clearTimeout(fileChangeTimeout);
 
         fileChangeTimeout = setTimeout(() => {
+          if (!targetConfig.handler.onFileChanged) {
+            logger.debug(`No onFileChanged hook. Changed file: ${localPath}`);
+            return;
+          }
+
           targetConfig.handler
             .onFileChanged({ localPath, changeType: 'change', rdt, info })
             .then(change)
