@@ -177,6 +177,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
       targetConfig.handler.onDeployed({ changedFiles, rdt });
     }, targetConfig.debounceTime ?? 200);
 
+    if (!r) return;
     changedFilesOnRemote.push(...r.changedFiles);
   }
 

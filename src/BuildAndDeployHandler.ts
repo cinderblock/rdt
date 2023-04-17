@@ -3,11 +3,14 @@ import { Target } from './config';
 import { Remote } from './remote';
 import { FileChangeInfo as FileChangeInfoNode } from 'fs/promises';
 
-export type BuildResult = {
-  changedFiles: string[];
+export type BuildResult =
+  | {
+      changedFiles: string[];
 
-  // TODO: deleted files?
-};
+      // TODO: deleted files?
+    }
+  // Default
+  | undefined;
 
 type SharedInfo = {
   rdt: Remote;
