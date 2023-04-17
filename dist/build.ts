@@ -3,22 +3,7 @@ import winston from 'winston';
 import esbuild from 'esbuild';
 import { join } from 'path';
 import { dtsPlugin } from 'esbuild-plugin-d.ts';
-
-const logger = winston.createLogger({
-  level: 'debug',
-  format: winston.format.json(),
-  // defaultMeta: { service: 'rdt-dist-build' },
-  transports: [
-    // Write all logs with importance level of `error` or less to `error.log`
-    // new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    // Write all logs with importance level of `info` or less to `combined.log`
-    // new winston.transports.File({ filename: 'combined.log' }),
-
-    new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
-    }),
-  ],
-});
+import { buildLogger as logger } from '../src/log';
 
 function forceExit() {
   setTimeout(() => {

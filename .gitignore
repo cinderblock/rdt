@@ -3,3 +3,7 @@
 
 # Dependency directories
 /node_modules/
+
+# Log files
+/combined.Log
+/error.Log
