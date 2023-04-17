@@ -88,6 +88,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
     } else if (process.platform === 'win32') {
       logger.debug('Windows detected. Trying to use OpenSSH agent');
       targetConfig.remote.agent = '\\\\.\\pipe\\openssh-ssh-agent';
+      // TODO: PuTTY?
     } else {
       const key = await findPrivateKey();
       if (key) {
