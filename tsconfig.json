@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "paths": {
+      // TODO: Should this be moved to a tsconfig just for examples and tests?
       "@cinderblock/rdt": ["./"]
     },
     /* Visit https://aka.ms/tsconfig to read more about this file */
