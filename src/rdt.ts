@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { fork } from 'child_process';
-import { config, Target } from './config';
+import { Target } from './config';
 import logger, { logFiles } from './log';
 import SSH2Promise from 'ssh2-promise';
 import { glob } from 'glob';

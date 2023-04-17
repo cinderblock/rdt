@@ -1,5 +1,3 @@
-import SSH2Promise from 'ssh2-promise';
-import { Target } from './config';
 import { Remote } from './remote';
 import { FileChangeInfo as FileChangeInfoNode } from 'fs/promises';
 
