@@ -46,6 +46,17 @@ export type Options = {
   watch?: boolean;
 };
 
+type Awaitable<T> = T | Promise<T>;
+type Pkg = {
+  pkg: Awaitable<Record<string, any>>;
+};
+type MainOptions = Options & Partial<Pkg>;
+type FullOptions = Options & Pkg;
+
+function isFullOptions(options: MainOptions): options is FullOptions {
+  return 'pkg' in options;
+}
+
 async function extractNamedFlag(args: string[], name: string): Promise<boolean> {
   const index = args.indexOf(name);
   if (index === -1) return false;
@@ -53,7 +64,7 @@ async function extractNamedFlag(args: string[], name: string): Promise<boolean> 
   return true;
 }
 
-export async function parseArgs(...args: string[]): Promise<Options> {
+export async function parseArgs(...args: string[]): Promise<MainOptions> {
   const skipDts = await extractNamedFlag(args, '--skip-dts');
   const watch = await extractNamedFlag(args, '--watch');
 
@@ -66,8 +77,16 @@ export async function parseArgs(...args: string[]): Promise<Options> {
   };
 }
 
-export async function main(options: Options) {
+export async function main(options: MainOptions) {
   const { distDir } = options;
+
+  // Load local `package.json` with `import()`
+  // import path is relative to current source file. Other paths are relative to `cwd` (normally project root)
+  options.pkg ??= import('../package.json').then(p => p.default);
+
+  // Should never happen. Make TypeScript happy.
+  if (!isFullOptions(options)) throw new Error('Invalid options');
+
   // TODO: check before removing??
   await rm(distDir, { recursive: true }).catch(() => {});
   await mkdir(distDir, { recursive: true });
@@ -85,7 +104,7 @@ export async function main(options: Options) {
   ]);
 }
 
-async function readme({ distDir, watch }: Options) {
+async function readme({ distDir, watch }: FullOptions) {
   await copyFile('README.md', join(distDir, 'README.md'));
 
   if (watch) logger.warn('Watching README.md for changes is not (yet) implemented');
@@ -94,7 +113,7 @@ async function readme({ distDir, watch }: Options) {
 // Not really tested
 const outputESM = false;
 
-async function build({ distDir: outDir, bundleName, skipDts, watch }: Options) {
+async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
   const plugins: esbuild.Plugin[] = [];
   const watchPlugin: esbuild.Plugin = {
     name: 'end Event Plugin',
@@ -154,14 +173,10 @@ async function build({ distDir: outDir, bundleName, skipDts, watch }: Options) {
   });
 }
 
-async function packageJson({ distDir, bundleName, watch }: Options) {
-  // Load local `package.json` with `import()`
-  // import path is relative to current source file. Other paths are relative to `cwd` (normally project root)
-  const packageJson = await import('../package.json');
-
+async function packageJson({ distDir, bundleName, watch, pkg }: FullOptions) {
   // Filter scripts and other unwanted parts
   const distPackageJson = {
-    ...packageJson.default,
+    ...(await pkg),
     bin: {
       rdt: bundleName,
     },
