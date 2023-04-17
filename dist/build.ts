@@ -80,7 +80,6 @@ export async function main(options: Options) {
 
     // TODO: License
     // TODO: Changelog
-    // TODO: package-lock.json
 
     build(options),
   ]);
