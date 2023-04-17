@@ -33,9 +33,10 @@ function handleError(e: any) {
 }
 
 if (require.main === module) {
+  logger.debug('Running main build');
   parseArgs(...process.argv.slice(2))
     .then(main)
-    .then(() => logger.info('Build exited normally'))
+    .then(() => logger.debug('Build exited normally'))
     .then(forceExit)
     .catch(handleError);
 }
