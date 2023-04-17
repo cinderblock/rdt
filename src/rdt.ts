@@ -6,7 +6,7 @@ import logger, { logFiles } from './log';
 import SSH2Promise from 'ssh2-promise';
 import { glob } from 'glob';
 import { FileChangeInfo, watch } from 'fs/promises';
-import { BuildResult } from './BuildAndDeployHandler';
+import { FileChangeResult } from './BuildAndDeployHandler';
 import { findPrivateKey } from './util/findPrivateKey';
 import { cli } from './cli';
 import { addToArrayUnique } from './util/addToArrayUnique';
@@ -159,7 +159,9 @@ export async function rdt(targetName: string, targetConfig: Target) {
   const changedFilesOnRemote: string[] = [];
 
   let changeTimeout: NodeJS.Timeout | undefined;
-  function change(r: BuildResult) {
+  function change(r: FileChangeResult) {
+    if (!r) return;
+
     // This debounce is not perfect but gets the job done.
     // It should start the timer when the last file is changed instead of when the last build is finished
     clearTimeout(changeTimeout);
@@ -178,7 +180,10 @@ export async function rdt(targetName: string, targetConfig: Target) {
       targetConfig.handler.onDeployed({ changedFiles, rdt });
     }, targetConfig.debounceTime ?? 200);
 
-    if (!r) return;
+    if (typeof r == 'string') {
+      changedFilesOnRemote.push(r);
+      return;
+    }
     changedFilesOnRemote.push(...r.changedFiles);
   }
 

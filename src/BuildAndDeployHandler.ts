@@ -1,12 +1,16 @@
 import { Remote } from './remote';
 import { FileChangeInfo as FileChangeInfoNode } from 'fs/promises';
 
-export type BuildResult =
-  | {
-      changedFiles: string[];
+export type BuildResult = {
+  changedFiles: string[];
 
-      // TODO: deleted files?
-    }
+  // TODO: deleted files?
+};
+
+export type FileChangeResult =
+  | BuildResult
+  // Single file
+  | string
   // Default
   | undefined;
 
@@ -50,7 +54,7 @@ export interface BuildAndDeploy {
    * Called to for each source file being deployed
    * @param options
    */
-  onFileChanged?(options: SharedInfo & FileChangeInfo): Promise<BuildResult>;
+  onFileChanged?(options: SharedInfo & FileChangeInfo): Promise<FileChangeResult>;
 
   onDeployed?(options: SharedInfo & BuildResult): Promise<void>;
 }
