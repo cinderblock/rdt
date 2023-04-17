@@ -158,10 +158,10 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   const changedFilesOnRemote: string[] = [];
 
-  // This debounce is not perfect but gets the job done.
-  // It should start the timer when the last file is changed instead of when the last build is finished
   let changeTimeout: NodeJS.Timeout | undefined;
   function change(r: BuildResult) {
+    // This debounce is not perfect but gets the job done.
+    // It should start the timer when the last file is changed instead of when the last build is finished
     clearTimeout(changeTimeout);
     changeTimeout = setTimeout(() => {
       // Make a copy of changes and empty it
