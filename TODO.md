@@ -15,6 +15,8 @@ This is a living document, and will be updated as things change, may be out of d
 - [ ] CLI arguments to control verbosity
 - [ ] Better output controls
 - [ ] Quieter defaults
+  - [x] Don't create log files by default
+  - [ ] Don't print to stdout by default
 
 ## Tools
 
