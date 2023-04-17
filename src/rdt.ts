@@ -236,7 +236,8 @@ if (require.main === module) {
     logger.debug('Re-running with esbuild-register loader');
     const [nodeBin, module, ...args] = process.argv;
     fork(module, args, {
-      // execPath: 'node_modules/.bin/node',
+      // Ensure we're using the node binary that we installed
+      execPath: 'node_modules/node/bin/node',
       execArgv: [
         ...process.execArgv,
 
