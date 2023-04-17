@@ -136,14 +136,7 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
     outdir: outDir,
     bundle: true,
     entryPoints: [join('src', 'rdt.ts')],
-    external: [
-      // TODO: Load this list from package.json#dependencies
-      'esbuild',
-      'esbuild-register',
-      'glob',
-      'ssh2-promise',
-      'winston',
-    ],
+    external: Object.keys((await pkg).dependencies).filter(d => !(d.startsWith('@types/') || d === 'node')),
   };
 
   const buildAllOpts: esbuild.BuildOptions = {
