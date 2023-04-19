@@ -281,8 +281,12 @@ if (require.main === module) {
     cli(...process.argv.slice(2))
       .then(() => logger.debug('Normal exit'))
       .catch(e => {
-        logger.error('Uncaught error:');
-        logger.error(e);
+        if (e?.message && e?.stack) {
+          logger.error(e.message);
+          logger.debug(e.stack);
+        } else {
+          logger.error(e);
+        }
         process.exitCode = 2;
       })
       .then(() => logger.debug('Done running...'))
