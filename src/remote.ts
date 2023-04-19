@@ -7,10 +7,12 @@ import { Target } from './config';
 import logger from './log';
 import { SystemdService, generateServiceFileContents } from './Systemd';
 import { dirOf } from './util/dirOf';
+import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
 
 export class Remote {
   public sftp;
   public apt;
+  public node;
   public npm;
   public fs;
   public systemd;
@@ -58,6 +60,31 @@ export class Remote {
 
       remove: async (packages: string[]) => {
         return this.run(`sudo apt-get remove ${packages.join(' ')}`, [], { logging: true, sudo: true });
+      },
+    };
+
+    this.node = {
+      install: async () => {
+        if (await this.platform.isARM6()) {
+          logger.debug('ARM6 detected, installing Node.js from unofficial builds');
+          return this.node.installUnofficial();
+        } else {
+        }
+      },
+      installUnofficial: async () => {
+        const versions = await getUnofficialBuilds();
+
+        const latest = versions.find(ver => ver.lts);
+
+        if (!latest) throw new Error('No LTS version found');
+
+        logger.debug(`Latest LTS version: ${latest.version} from ${latest.date}`);
+
+        const downloadUrl = `https://unofficial-builds.nodejs.org/download/release/${latest.version}/node-${latest.version}-linux-armv6l.tar.xz`;
+
+        logger.info(`Downloading Node.js ${latest.version} from ${downloadUrl}`);
+
+        this.run(`curl -sL "${downloadUrl}" | sudo tar xJ -C /usr/local --strip-components=1`, [], { logging: true });
       },
     };
 
