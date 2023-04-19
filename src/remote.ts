@@ -14,6 +14,8 @@ export class Remote {
   public npm;
   public fs;
   public systemd;
+  public raspberryPi;
+  public platform;
 
   constructor(public targetName: string, public targetConfig: Target, public connection: SSH2Promise) {
     logger.debug(`Hello from Remote constructor!`);
@@ -175,6 +177,30 @@ export class Remote {
           // TODO: return something so that we can control this process...
           return this.run(`journalctl${user} --follow --unit ${serviceName}`, [], { logging: true });
         },
+      },
+    };
+
+    this.raspberryPi = {
+      config: {
+        run: async (command: string, ...args: string[]) => {
+          logger.debug(`raspberryPi Config: ${command}`);
+          return this.run(`raspi-config nonint ${command}`, args, { logging: false, sudo: true });
+        },
+        setHostname: async (hostname: string) => {
+          logger.debug(`setHostname: ${hostname}`);
+          return this.raspberryPi.config.run('do_hostname', hostname);
+        },
+        setWifiCountry: async (country: string) => {
+          logger.debug(`setWifiCountry: ${country}`);
+          return this.raspberryPi.config.run('do_wifi_country', country);
+        },
+      },
+    };
+
+    this.platform = {
+      isARM6: async () => {
+        const { stdout } = await this.run('uname -m', [], { logging: false });
+        return stdout.trim().match(/^armv6(\D|$)/);
       },
     };
   }
