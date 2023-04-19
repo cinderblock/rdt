@@ -31,35 +31,35 @@ export class Remote {
       },
 
       install: async (packages: string[]) => {
-        return this.run(`sudo apt-get install -y ${packages.join(' ')}`, [], { logging: true, sudo: true });
+        return this.run(`apt-get install -y`, packages, { logging: true, sudo: true });
       },
 
       upgrade: async () => {
-        return this.run(`sudo apt-get upgrade`, [], { logging: true, sudo: true });
+        return this.run(`apt-get upgrade -y`, [], { logging: true, sudo: true });
       },
 
       autoremove: async () => {
-        return this.run(`sudo apt-get autoremove`, [], { logging: true, sudo: true });
+        return this.run(`apt-get autoremove -y`, [], { logging: true, sudo: true });
       },
 
       autoclean: async () => {
-        return this.run(`sudo apt-get autoclean`, [], { logging: true, sudo: true });
+        return this.run(`apt-get autoclean`, [], { logging: true, sudo: true });
       },
 
       fullUpgrade: async () => {
-        return this.run(`sudo apt-get full-upgrade`, [], { logging: true, sudo: true });
+        return this.run(`apt-get full-upgrade`, [], { logging: true, sudo: true });
       },
 
       distUpgrade: async () => {
-        return this.run(`sudo apt-get dist-upgrade`, [], { logging: true, sudo: true });
+        return this.run(`apt-get dist-upgrade`, [], { logging: true, sudo: true });
       },
 
       purge: async (packages: string[]) => {
-        return this.run(`sudo apt-get purge ${packages.join(' ')}`, [], { logging: true, sudo: true });
+        return this.run(`apt-get purge`, packages, { logging: true, sudo: true });
       },
 
       remove: async (packages: string[]) => {
-        return this.run(`sudo apt-get remove ${packages.join(' ')}`, [], { logging: true, sudo: true });
+        return this.run(`apt-get remove`, packages, { logging: true, sudo: true });
       },
     };
 
