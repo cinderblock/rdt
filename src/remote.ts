@@ -67,8 +67,10 @@ export class Remote {
       install: async () => {
         if (await this.platform.isARM6()) {
           logger.debug('ARM6 detected, installing Node.js from unofficial builds');
-          return this.node.installUnofficial();
+          await this.node.installUnofficial();
         } else {
+          // TODO: setup node apt repo
+          await this.apt.install(['nodejs']);
         }
       },
       installUnofficial: async () => {
