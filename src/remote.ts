@@ -370,6 +370,7 @@ export class Remote {
     this.platform = {
       isARM6: async () => {
         const { stdout } = await this.run('uname -m', [], { logging: false });
+        logger.debug(`Detected platform: ${stdout.trim()}`);
         return stdout.trim().match(/^armv6(\D|$)/);
       },
     };
