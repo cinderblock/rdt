@@ -216,7 +216,7 @@ export class Remote {
         // Check if file exists and has the correct content. If not, create it (and create the directory if needed).
         logger.debug(`ensureFileIs: ${path}`);
 
-        const current = await this.sftp.readFile(path).catch(() => null);
+        const current = await this.fs.readFile(path);
 
         if (current === content) return;
 
