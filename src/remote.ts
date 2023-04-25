@@ -327,7 +327,7 @@ export class Remote {
           logger.debug(`setHostname: ${hostname}`);
           return this.raspberryPi.config.run('do_hostname', hostname);
         },
-        setWifiCountry: async (country: string) => {
+        setWifiCountry: async (country: 'US' | 'GB') => {
           logger.debug(`setWifiCountry: ${country}`);
           return this.raspberryPi.config.run('do_wifi_country', country);
         },
