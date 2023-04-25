@@ -25,7 +25,7 @@ export class Remote {
     this.sftp = connection.sftp();
     this.apt = {
       update: async () => {
-        if (await this.run('apt-get update', [], { logging: true, sudo: true })) {
+        if ((await this.run('apt-get update', [], { logging: true, sudo: true })).exitCode) {
           throw new Error('Failed to update apt');
         }
       },
