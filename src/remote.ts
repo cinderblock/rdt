@@ -230,6 +230,16 @@ export class Remote {
 
         await this.sftp.writeFile(path, content, {});
       },
+
+      readFile: async (path: string) => {
+        logger.silly(`readFile: ${path}`);
+        return this.sftp.readFile(path, 'utf8').catch(() => null);
+      },
+
+      unlink: async (path: string) => {
+        logger.debug(`unlink: ${path}`);
+        return this.sftp.unlink(path);
+      },
     };
 
     this.systemd = {
