@@ -20,7 +20,7 @@ export class Remote {
   public platform;
 
   constructor(public targetName: string, public targetConfig: Target, public connection: SSH2Promise) {
-    logger.debug(`Hello from Remote constructor!`);
+    logger.silly(`Hello from Remote constructor!`);
 
     this.sftp = connection.sftp();
     this.apt = {
@@ -66,10 +66,11 @@ export class Remote {
     this.node = {
       install: async () => {
         if (await this.platform.isARM6()) {
-          logger.debug('ARM6 detected, installing Node.js from unofficial builds');
+          logger.silly('ARM6 detected, installing Node.js from unofficial builds');
           await this.node.installUnofficial();
         } else {
           // TODO: setup node apt repo
+          logger.silly('Installing Node.js from apt');
           await this.apt.install(['nodejs']);
         }
       },

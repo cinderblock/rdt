@@ -110,7 +110,7 @@ export type Config = {
 };
 
 export async function config(): Promise<Config> {
-  logger.info('Loading config...');
+  logger.silly('Loading config...');
   // Open `rdt.ts` in the current directory
   const {
     default: { version, defaultTarget, targets },
@@ -121,7 +121,7 @@ export async function config(): Promise<Config> {
 
   logger.debug(`Config version: ${version}`);
   logger.debug(`Default target: ${defaultTarget}`);
-  logger.info(`Targets: ${Object.keys(targets).join(', ')}`);
+  logger.debug(`Targets: ${Object.keys(targets).join(', ')}`);
 
   // TODO: Validate the config
 

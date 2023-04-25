@@ -124,7 +124,9 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   const { remote } = targetConfig;
 
-  logger.info(`Connecting to remote: ${remote.host}:${remote.port} as ${remote.username}`);
+  const port = remote.port ? `:${remote.port}` : '';
+
+  logger.info(`Connecting to remote: ${remote.host}${port} as ${remote.username}`);
 
   const connection = new SSH2Promise(remote);
 
@@ -240,7 +242,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
 if (require.main === module) {
   if (!process.execArgv.includes('--experimental-loader')) {
-    logger.debug('Re-running with esbuild-register loader');
+    logger.silly('Re-running with esbuild-register loader');
     const [nodeBin, module, ...args] = process.argv;
     fork(module, args, {
       // Ensure we're using the node binary that we installed
@@ -277,7 +279,7 @@ if (require.main === module) {
       p.then(e => logger.error(e)).catch(e => logger.error(e));
     });
 
-    logger.debug('Running with esbuild-register loader');
+    logger.silly('Running with esbuild-register loader');
     cli(...process.argv.slice(2))
       .then(() => logger.debug('Normal exit'))
       .catch(e => {
