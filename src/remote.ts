@@ -9,6 +9,12 @@ import { SystemdService, generateServiceFileContents } from './Systemd';
 import { dirOf } from './util/dirOf';
 import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
 
+enum SerialPortMode {
+  'console' = 0,
+  'disabled' = 1,
+  'serial' = 2,
+}
+
 export class Remote {
   public sftp;
   public apt;
@@ -330,6 +336,33 @@ export class Remote {
         setWifiCountry: async (country: 'US' | 'GB') => {
           logger.debug(`setWifiCountry: ${country}`);
           return this.raspberryPi.config.run('do_wifi_country', country);
+        },
+        setWifiSSID: async ({
+          ssid,
+          passphrase,
+          hidden,
+          plain,
+        }: {
+          ssid: string;
+          passphrase: string;
+          hidden?: boolean;
+          plain?: boolean;
+        }) => {
+          logger.debug(`Setup WiFi: ${ssid}${hidden ? ' hidden' : ''} ${passphrase ? 'with' : 'without'} passphrase`);
+          const args = [ssid];
+          args.push(passphrase);
+          if (hidden !== undefined || plain !== undefined) args.push(hidden ? '1' : '0');
+          if (plain !== undefined) args.push(plain ? '1' : '0');
+
+          return this.raspberryPi.config.run('do_wifi_ssid_passphrase', ...args);
+        },
+        setSerialPortMode: async (mode: SerialPortMode) => {
+          logger.debug(`setSerialPortMode: ${SerialPortMode[mode]}`);
+          return this.raspberryPi.config.run('do_serial', '' + mode);
+        },
+        setTimezone: async (timezone: string) => {
+          logger.debug(`setTimezone: ${timezone}`);
+          return this.raspberryPi.config.run('do_change_timezone', timezone);
         },
       },
     };
