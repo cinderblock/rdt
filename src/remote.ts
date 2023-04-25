@@ -8,6 +8,7 @@ import logger from './log';
 import { SystemdService, generateServiceFileContents } from './Systemd';
 import { dirOf } from './util/dirOf';
 import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
+import { ClientChannel } from 'ssh2';
 
 enum SerialPortMode {
   'console' = 0,
@@ -383,13 +384,31 @@ export class Remote {
       sudo?: boolean;
       logging?: boolean;
       suppressError?: boolean;
+      workingDirectory?: string;
     } = {},
   ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     if (opts.sudo) {
       command = `sudo ${command}`;
     }
 
-    const socket = await this.connection.spawn(command, args);
+    // We need to start a shell so that we can change directories before execution
+    const shell: ClientChannel = await this.connection.shell(false);
+
+    logger.debug(`Running command: ${command} ${args.join(' ')}`);
+
+    if (opts.workingDirectory) {
+      logger.debug(`Changing working directory to: ${opts.workingDirectory}`);
+      shell.write(`cd ${opts.workingDirectory}\n`);
+    }
+
+    // TODO: escape command and args
+    shell.write(`${command} ${args.join(' ')}\n`);
+
+    // We need to exit so that we can "detect" the shell has finished executing the command
+    shell.write(`exit\n`);
+
+    const socket = shell;
+
     const log = opts.logging ? logger.child({ command }) : undefined;
 
     let stdout = '';
@@ -429,6 +448,8 @@ export class Remote {
       socket.on('close', resolve);
       socket.on('error', reject);
     });
+
+    logger.debug(`Command finished. Exit code: ${exitCode}`);
 
     if (!opts.suppressError && exitCode !== 0) {
       throw new Error(`Command failed: ${command} ${args.join(' ')}\n\n${stderr}`);
