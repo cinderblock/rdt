@@ -11,6 +11,7 @@ import { findPrivateKey } from './util/findPrivateKey';
 import { cli } from './cli';
 import { addToArrayUnique } from './util/addToArrayUnique';
 import { Remote } from './remote';
+import { handleError } from './Errors';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
@@ -217,10 +218,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
           targetConfig.handler
             .onFileChanged({ localPath, changeType: 'change', rdt, info })
             .then(change)
-            .catch(e => {
-              logger.error(`Error while deploying ${localPath}`);
-              logger.error(e);
-            });
+            .catch(handleError('while deploying'));
         }, targetConfig.debounceTime ?? 200);
       }
 
@@ -282,21 +280,22 @@ if (require.main === module) {
     logger.silly('Running with esbuild-register loader');
     cli(...process.argv.slice(2))
       .then(() => logger.debug('Normal exit'))
-      .catch(e => {
-        if (e?.message && e?.stack) {
-          logger.error(e.message);
-          logger.debug(e.stack);
-        } else {
-          logger.error(e);
-        }
-        process.exitCode = 2;
-      })
+      .catch(handleErrorFatal)
       .then(() => logger.debug('Done running...'))
-      .then(() =>
-        setTimeout(() => {
-          logger.warn('Forcing exit');
-          process.exit((process.exitCode ?? 0) + 1);
-        }, 1000).unref(),
-      );
+      .then(forceExit());
   }
+}
+
+const eh = handleError('fatal');
+export async function handleErrorFatal(e: any) {
+  process.exitCode = 2;
+  return eh(e);
+}
+
+function forceExit(timeout = 1000) {
+  return () =>
+    setTimeout(() => {
+      logger.warn('Forcing exit');
+      process.exit((process.exitCode ?? 0) + 1);
+    }, timeout).unref();
 }
