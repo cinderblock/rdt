@@ -212,7 +212,7 @@ export class Remote {
         await this.sftp.mkdir(dir);
       },
 
-      ensureFileIs: async (path: string, content: string) => {
+      ensureFileIs: async (path: string, content: string, opts: { sudo?: boolean } = {}) => {
         // Check if file exists and has the correct content. If not, create it (and create the directory if needed).
         logger.debug(`ensureFileIs: ${path}`);
 
@@ -228,7 +228,14 @@ export class Remote {
 
         logger.debug(`writing file: ${path}`);
 
-        await this.sftp.writeFile(path, content, {});
+        const randomTempPath = `/tmp/${Math.random().toString(36).substring(7)}`;
+
+        await this.sftp.writeFile(path, content, {}).catch(async e => {
+          if (!opts.sudo || e?.code !== 3) throw e;
+
+          await this.sftp.writeFile(randomTempPath, content, {});
+          await this.run(`mv`, [randomTempPath, path], { sudo: true, logging: true });
+        });
       },
 
       readFile: async (path: string) => {
