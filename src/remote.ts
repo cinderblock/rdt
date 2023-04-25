@@ -104,7 +104,57 @@ export class Remote {
     };
 
     this.node = {
+      getVersion: async (): Promise<void | {
+        major: number;
+        minor: number;
+        patch: number;
+        versionString: string;
+        semanticVersion: string;
+        prerelease?: string;
+        buildMeta?: string;
+      }> => {
+        const exec = await this.run('node -v', [], { logging: false }).catch(() => {});
+        if (!exec) {
+          logger.debug(`Node.js not installed`);
+          return;
+        }
+        if (exec.exitCode) {
+          logger.debug(`Node.js not installed??`);
+          return;
+        }
+
+        const versionString = exec.stdout.trim();
+
+        // regex match with names groups and optional release & build flags
+        const match = versionString.match(
+          /^v(?<semanticVersion>(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildMeta>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$/,
+        );
+
+        if (!match?.groups) {
+          logger.debug(`Node.js version string not recognized: ${versionString}`);
+          return;
+        }
+
+        const { semanticVersion, major, minor, patch, prerelease, buildMeta } = match.groups;
+
+        return {
+          major: parseInt(major),
+          minor: parseInt(minor),
+          patch: parseInt(patch),
+          versionString,
+          semanticVersion,
+          prerelease,
+          buildMeta,
+        };
+      },
       install: async () => {
+        const version = await this.node.getVersion();
+
+        if (version) {
+          logger.debug(`Node.js already installed: ${version.versionString}`);
+          return;
+        }
+
         if (await this.platform.isARM6()) {
           logger.silly('ARM6 detected, installing Node.js from unofficial builds');
           await this.node.installUnofficial();
