@@ -177,7 +177,7 @@ export class Remote {
 
         logger.info(`Downloading Node.js ${latest.version} from ${downloadUrl}`);
 
-        this.run(`curl -sL "${downloadUrl}" | sudo tar xJ -C /usr/local --strip-components=1`, [], { logging: true });
+        await this.run(`curl -sL ${downloadUrl} | sudo tar xJ -C /usr/local --strip-components=1`, []);
       },
     };
 
