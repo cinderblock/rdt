@@ -18,11 +18,51 @@ export class Remote {
   public systemd;
   public raspberryPi;
   public platform;
+  public reduceWork;
 
   constructor(public targetName: string, public targetConfig: Target, public connection: SSH2Promise) {
     logger.silly(`Hello from Remote constructor!`);
 
+    this.reduceWork = {
+      /**
+       * A function that checks if a lock is available, and if so, returns a function that releases the lock.
+       *
+       * Use to reduce replicating work that shouldn't change often, such as installing packages.
+       *
+       * @param lockName Name of the lock to check
+       * @param expiration Hours until the lock expires
+       * @returns a function that releases the lock, or null to indicate that the previous lock has not expired yet
+       */
+      checkAndGetLock: async (lockName: string, expiration = 20): Promise<null | (() => Promise<void>)> => {
+        const lockFile = `rdt-locks/${lockName}.lock`;
+
+        let content = await this.fs.readFile(lockFile);
+
+        if (content) content = content.trim();
+
+        logger.silly(`Lock content: ${content ?? 'empty'}`);
+
+        if (content) {
+          // if content + expiration hours < now, return null
+          const expirationDate = new Date(parseInt(content));
+          expirationDate.setHours(expirationDate.getHours() + expiration);
+
+          logger.debug(`Lock expires at: ${expirationDate}`);
+
+          if (expirationDate > new Date()) {
+            return null;
+          }
+        }
+
+        this.fs.unlink(lockFile).catch(() => {});
+        return async () => {
+          await this.fs.ensureFileIs(lockFile, Date.now() + '\n');
+        };
+      },
+    };
+
     this.sftp = connection.sftp();
+
     this.apt = {
       update: async () => {
         if ((await this.run('apt-get update', [], { logging: true, sudo: true })).exitCode) {
