@@ -127,6 +127,10 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
   if (watch) plugins.push(watchPlugin);
   if (!skipDts) plugins.push(dtsPlugin({ outDir }));
 
+  const external = Object.keys((await pkg).dependencies).filter(d => !(d.startsWith('@types/') || d === 'node'));
+
+  logger.debug(`External dependencies: ${external.join(', ')}`);
+
   const buildOpts: esbuild.BuildOptions = {
     platform: 'node',
     target: 'node14',
@@ -136,7 +140,7 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
     outdir: outDir,
     bundle: true,
     entryPoints: [join('src', 'rdt.ts')],
-    external: Object.keys((await pkg).dependencies).filter(d => !(d.startsWith('@types/') || d === 'node')),
+    external,
   };
 
   const buildAllOpts: esbuild.BuildOptions = {
