@@ -3,7 +3,7 @@
 import { fork } from 'child_process';
 import { Target } from './config';
 import logger, { logFiles } from './log';
-import SSH2Promise from 'ssh2-promise';
+import { Client } from 'ssh2';
 import { glob } from 'glob';
 import { FileChangeInfo, watch } from 'fs/promises';
 import { FileChangeResult } from './BuildAndDeployHandler';
@@ -12,6 +12,7 @@ import { cli } from './cli';
 import { addToArrayUnique } from './util/addToArrayUnique';
 import { Remote } from './remote';
 import { handleError } from './Errors';
+import { promisify } from 'util';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
@@ -129,14 +130,18 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   logger.info(`Connecting to remote: ${remote.host}${port} as ${remote.username}`);
 
-  const connection = new SSH2Promise(remote);
+  const connection = new Client();
 
   const rdt = new Remote(targetName, targetConfig, connection);
 
   // Find all files in target.watchGlob
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
 
-  const ready = connection.connect().then(async () => {
+  const ready = new Promise<void>((resolve, reject) => {
+    connection.on('ready', resolve);
+    connection.on('error', reject);
+    connection.connect(remote);
+  }).then(async () => {
     logger.debug('Connected');
 
     if (!targetConfig.handler.onConnected) {

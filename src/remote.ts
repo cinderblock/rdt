@@ -2,13 +2,14 @@
  * Tools that do useful things on remote in RDT
  */
 
-import SSH2Promise from 'ssh2-promise';
+import { Client } from 'ssh2';
 import { Target } from './config';
 import logger from './log';
 import { SystemdService, generateServiceFileContents } from './Systemd';
 import { dirOf } from './util/dirOf';
 import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
 import { ClientChannel } from 'ssh2';
+import { promisify } from 'util';
 
 enum SerialPortMode {
   'console' = 0,
@@ -27,7 +28,7 @@ export class Remote {
   public platform;
   public reduceWork;
 
-  constructor(public targetName: string, public targetConfig: Target, public connection: SSH2Promise) {
+  constructor(public targetName: string, public targetConfig: Target, public connection: Client) {
     logger.silly(`Hello from Remote constructor!`);
 
     this.reduceWork = {
@@ -45,13 +46,11 @@ export class Remote {
 
         let content = await this.fs.readFile(lockFile);
 
-        if (content) content = content.trim();
-
-        logger.silly(`Lock content: ${content ?? 'empty'}`);
-
         if (content) {
+          logger.silly(`Lock content: ${content ?? 'empty'}`);
+
           // if content + expiration hours < now, return null
-          const expirationDate = new Date(parseInt(content));
+          const expirationDate = new Date(parseInt(content.toString().trim()));
           expirationDate.setHours(expirationDate.getHours() + expiration);
 
           logger.debug(`Lock expires at: ${expirationDate}`);
@@ -59,6 +58,8 @@ export class Remote {
           if (expirationDate > new Date()) {
             return null;
           }
+        } else {
+          logger.silly(`No lock file found`);
         }
 
         this.fs.unlink(lockFile).catch(() => {});
@@ -68,7 +69,7 @@ export class Remote {
       },
     };
 
-    this.sftp = connection.sftp();
+    this.sftp = promisify(connection.sftp.bind(connection));
 
     this.apt = {
       update: async () => {
@@ -200,7 +201,9 @@ export class Remote {
         const dir = dirOf(path);
         if (!dir) return;
 
-        const stat = await this.sftp.stat(dir).catch(() => null);
+        const sftp = await this.sftp();
+
+        const stat = await promisify(sftp.stat.bind(sftp))(dir).catch(() => null);
 
         if (stat) {
           if (!stat.isDirectory()) {
@@ -216,19 +219,21 @@ export class Remote {
 
         logger.debug(`creating directory: ${dir}`);
 
-        await this.sftp.mkdir(dir);
+        await promisify(sftp.mkdir.bind(sftp))(dir);
       },
 
-      ensureFileIs: async (path: string, content: string, opts: { sudo?: boolean } = {}) => {
+      ensureFileIs: async (path: string, content: string | null, opts: { sudo?: boolean } = {}) => {
         // Check if file exists and has the correct content. If not, create it (and create the directory if needed).
         logger.debug(`ensureFileIs: ${path}`);
 
-        const current = await this.fs.readFile(path);
+        const sftp = await this.sftp();
+
+        const current = await this.fs.readFile(path).then(b => b?.toString() ?? null);
 
         if (current === content) return;
 
         if (content === null) {
-          return this.sftp.unlink(path);
+          return this.fs.unlink(path);
         }
 
         await this.fs.mkdirFor(path);
@@ -237,22 +242,34 @@ export class Remote {
 
         const randomTempPath = `/tmp/${Math.random().toString(36).substring(7)}`;
 
-        await this.sftp.writeFile(path, content, {}).catch(async e => {
+        await this.fs.writeFile(path, content).catch(async e => {
           if (!opts.sudo || e?.code !== 3) throw e;
 
-          await this.sftp.writeFile(randomTempPath, content, {});
+          await this.fs.writeFile(randomTempPath, content);
           await this.run(`mv`, [randomTempPath, path], { sudo: true, logging: true });
         });
       },
 
       readFile: async (path: string) => {
         logger.silly(`readFile: ${path}`);
-        return this.sftp.readFile(path, 'utf8').catch(() => null);
+        return new Promise<Buffer | null>(async resolve => {
+          const sftp = await this.sftp();
+          sftp.readFile(path, (err, data) => {
+            resolve(err ? null : data);
+          });
+        });
+      },
+
+      writeFile: async (path: string, content: string | Buffer) => {
+        logger.debug(`writeFile: ${path}`);
+        const sftp = await this.sftp();
+        return promisify(sftp.writeFile.bind(sftp))(path, content);
       },
 
       unlink: async (path: string) => {
         logger.debug(`unlink: ${path}`);
-        return this.sftp.unlink(path);
+        const sftp = await this.sftp();
+        return promisify(sftp.unlink.bind(sftp))(path);
       },
     };
 
@@ -392,7 +409,7 @@ export class Remote {
     }
 
     // We need to start a shell so that we can change directories before execution
-    const shell: ClientChannel = await this.connection.shell(false);
+    const shell = await promisify<false, ClientChannel>(this.connection.shell.bind(this.connection))(false);
 
     logger.debug(`Running command: ${command} ${args.join(' ')}`);
 

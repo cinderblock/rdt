@@ -44,7 +44,7 @@
     "esbuild-register": "^3.4.2",
     "glob": "^9.3.1",
     "node": "^19.8.1",
-    "ssh2-promise": "^1.0.3",
+    "ssh2": "^1.11.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
