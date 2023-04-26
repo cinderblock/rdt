@@ -133,7 +133,7 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
 
   const buildOpts: esbuild.BuildOptions = {
     platform: 'node',
-    target: 'node14',
+    target: 'node18',
     format: outputESM ? 'esm' : 'cjs',
     sourcemap: true,
     plugins,
@@ -144,12 +144,9 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
   };
 
   const buildAllOpts: esbuild.BuildOptions = {
-    platform: 'node',
-    target: 'node14',
-    format: outputESM ? 'esm' : 'cjs',
-    sourcemap: true,
-    plugins,
-    outdir: outDir,
+    ...buildOpts,
+    bundle: undefined,
+    external: undefined,
     entryPoints: await readdir('src').then(files => files.filter(f => f.endsWith('.ts')).map(f => join('src', f))),
   };
 
