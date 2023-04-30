@@ -388,6 +388,7 @@ export class Remote {
       sudo?: boolean;
       discardOutput?: boolean;
       logging?: boolean;
+      lineHandler?: (line: string, err: boolean) => void;
       suppressError?: boolean;
       workingDirectory?: string;
     } = {},
@@ -416,8 +417,8 @@ export class Remote {
 
     const log = opts.logging ? logger.child({ command }) : undefined;
 
-    // Discard output by default if we're logging
-    opts.discardOutput ??= !!log;
+    // Discard output by default if we're logging or have a line handler
+    opts.discardOutput ??= !!(log || opts.lineHandler);
 
     let stdout = '';
     let stderr = '';
@@ -426,14 +427,15 @@ export class Remote {
       let stdoutBuffer = '';
       socket.stdout.on('data', (data: Buffer) => {
         if (!opts.discardOutput) stdout += data.toString();
-        if (log) {
+        if (log || opts.lineHandler) {
           stdoutBuffer += data.toString();
           while (true) {
             const i = stdoutBuffer.indexOf('\n');
             if (i === -1) break;
             const line = stdoutBuffer.slice(0, i).trimEnd();
             stdoutBuffer = stdoutBuffer.slice(i + 1);
-            log.info(line);
+            opts.lineHandler?.(line, false);
+            log?.info(line);
           }
         }
       });
@@ -441,14 +443,15 @@ export class Remote {
       let stderrBuffer = '';
       socket.stderr.on('data', (data: Buffer) => {
         if (!opts.discardOutput) stderr += data.toString();
-        if (log) {
+        if (log || opts.lineHandler) {
           stderrBuffer += data.toString();
           while (true) {
             const i = stderrBuffer.indexOf('\n');
             if (i === -1) break;
             const line = stderrBuffer.slice(0, i).trimEnd();
             stderrBuffer = stderrBuffer.slice(i + 1);
-            log.error(line);
+            opts.lineHandler?.(line, true);
+            log?.error(line);
           }
         }
       });
