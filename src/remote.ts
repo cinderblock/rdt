@@ -2,7 +2,7 @@
  * Tools that do useful things on remote in RDT
  */
 
-import { Client } from 'ssh2';
+import { Client, SFTPWrapper } from 'ssh2';
 import { Target } from './config';
 import logger from './log';
 import { SystemdService, generateServiceFileContents, handleJournalJson } from './Systemd';
@@ -11,7 +11,7 @@ import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
 import { ClientChannel } from 'ssh2';
 import { promisify } from 'util';
 
-enum SerialPortMode {
+export enum SerialPortMode {
   'console' = 0,
   'disabled' = 1,
   'serial' = 2,
@@ -70,7 +70,7 @@ export class Remote {
     };
 
     // this.sftp = promisify(connection.sftp.bind(connection))();
-    this.sftp = new Promise((resolve, reject) => {
+    this.sftp = new Promise<SFTPWrapper>((resolve, reject) => {
       connection.on('ready', () => {
         connection.sftp((err, sftp) => {
           if (err) {

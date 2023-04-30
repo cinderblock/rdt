@@ -12,11 +12,11 @@ import { cli } from './cli';
 import { addToArrayUnique } from './util/addToArrayUnique';
 import { Remote } from './remote';
 import { handleError } from './Errors';
-import { promisify } from 'util';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
 export { userLogger as logger } from './log';
+export { SerialPortMode } from './remote';
 
 export async function rdt(targetName: string, targetConfig: Target) {
   logger.info(`RDT Target: ${targetName}`);
