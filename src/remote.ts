@@ -386,6 +386,7 @@ export class Remote {
     args: string[] = [],
     opts: {
       sudo?: boolean;
+      discardOutput?: boolean;
       logging?: boolean;
       suppressError?: boolean;
       workingDirectory?: string;
@@ -415,13 +416,16 @@ export class Remote {
 
     const log = opts.logging ? logger.child({ command }) : undefined;
 
+    // Discard output by default if we're logging
+    opts.discardOutput ??= !!log;
+
     let stdout = '';
     let stderr = '';
 
     const exitCode = await new Promise<number>((resolve, reject) => {
       let stdoutBuffer = '';
       socket.stdout.on('data', (data: Buffer) => {
-        stdout += data.toString();
+        if (!opts.discardOutput) stdout += data.toString();
         if (log) {
           stdoutBuffer += data.toString();
           while (true) {
@@ -436,7 +440,7 @@ export class Remote {
 
       let stderrBuffer = '';
       socket.stderr.on('data', (data: Buffer) => {
-        stderr += data.toString();
+        if (!opts.discardOutput) stderr += data.toString();
         if (log) {
           stderrBuffer += data.toString();
           while (true) {
