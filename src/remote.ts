@@ -69,7 +69,19 @@ export class Remote {
       },
     };
 
-    this.sftp = promisify(connection.sftp.bind(connection));
+    // this.sftp = promisify(connection.sftp.bind(connection))();
+    this.sftp = new Promise((resolve, reject) => {
+      connection.on('ready', () => {
+        connection.sftp((err, sftp) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          resolve(sftp);
+        });
+      });
+    });
 
     this.apt = {
       update: async () => {
@@ -201,7 +213,7 @@ export class Remote {
         const dir = dirOf(path);
         if (!dir) return;
 
-        const sftp = await this.sftp();
+        const sftp = await this.sftp;
 
         const stat = await promisify(sftp.stat.bind(sftp))(dir).catch(() => null);
 
@@ -226,7 +238,7 @@ export class Remote {
         // Check if file exists and has the correct content. If not, create it (and create the directory if needed).
         logger.debug(`ensureFileIs: ${path}`);
 
-        const sftp = await this.sftp();
+        const sftp = await this.sftp;
 
         const current = await this.fs.readFile(path).then(b => b?.toString() ?? null);
 
@@ -253,7 +265,7 @@ export class Remote {
       readFile: async (path: string) => {
         logger.silly(`readFile: ${path}`);
         return new Promise<Buffer | null>(async resolve => {
-          const sftp = await this.sftp();
+          const sftp = await this.sftp;
           sftp.readFile(path, (err, data) => {
             resolve(err ? null : data);
           });
@@ -262,13 +274,13 @@ export class Remote {
 
       writeFile: async (path: string, content: string | Buffer) => {
         logger.debug(`writeFile: ${path}`);
-        const sftp = await this.sftp();
+        const sftp = await this.sftp;
         return promisify(sftp.writeFile.bind(sftp))(path, content);
       },
 
       unlink: async (path: string) => {
         logger.debug(`unlink: ${path}`);
-        const sftp = await this.sftp();
+        const sftp = await this.sftp;
         return promisify(sftp.unlink.bind(sftp))(path);
       },
     };
