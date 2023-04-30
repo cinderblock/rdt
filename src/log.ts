@@ -31,6 +31,14 @@ export function rdtLogFormat() {
         info.message = '👤' + sep + info.message;
         delete info.label;
         break;
+      case 'systemd':
+        info.message = '🔧' + sep + info.message;
+        delete info.label;
+        break;
+      case 'application':
+        info.message = '🏃' + sep + info.message;
+        delete info.label;
+        break;
       default:
         info.message = '❔' + sep + info.message;
         break;

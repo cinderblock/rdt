@@ -5,7 +5,7 @@
 import { Client } from 'ssh2';
 import { Target } from './config';
 import logger from './log';
-import { SystemdService, generateServiceFileContents } from './Systemd';
+import { SystemdService, generateServiceFileContents, handleJournalJson } from './Systemd';
 import { dirOf } from './util/dirOf';
 import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
 import { ClientChannel } from 'ssh2';
@@ -325,17 +325,38 @@ export class Remote {
       journal: {
         service: async (serviceName: string, opts: { userService?: boolean } = {}) => {
           logger.debug(`journalService: ${serviceName}`);
-          const user = opts.userService ? ' --user' : '';
 
-          return this.run(`journalctl${user} --unit ${serviceName}`, [], { logging: true });
+          const args = [];
+
+          if (opts.userService) {
+            args.unshift('--user');
+          }
+
+          return this.run(`journalctl --unit ${serviceName}`, args, { logging: true });
         },
 
         follow: async (serviceName: string, opts: { userService?: boolean } = {}) => {
           logger.debug(`journalFollow: ${serviceName}`);
-          const user = opts.userService ? ' --user' : '';
+
+          const args = [];
+
+          // Follow the logs
+          args.push('--follow');
+
+          // Don't show any old logs
+          args.push('--lines', '0');
+
+          if (opts.userService) {
+            args.unshift('--user');
+          }
+
+          args.push('--output', 'json');
+          const lineHandler = (line: string) => handleJournalJson(line);
 
           // TODO: return something so that we can control this process...
-          return this.run(`journalctl${user} --follow --unit ${serviceName}`, [], { logging: true });
+          return this.run(`journalctl --unit ${serviceName}`, args, {
+            lineHandler,
+          });
         },
       },
     };
