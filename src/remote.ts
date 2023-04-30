@@ -290,37 +290,24 @@ export class Remote {
           await this.run(`systemctl${user} enable ${serviceName}`, [], { sudo, logging: true });
         },
 
-        start: async (serviceName: string, opts: { userService?: boolean } = {}) => {
-          logger.debug(`startService: ${serviceName}`);
+        systemctl: async (command: string, serviceName: string, opts: { userService?: boolean } = {}) => {
+          logger.debug(`systemctl: ${command}`);
           const sudo = !opts.userService;
           const user = opts.userService ? ' --user' : '';
 
-          await this.run(`systemctl${user} start ${serviceName}`, [], { sudo, logging: true });
+          await this.run(`systemctl${user} ${command} ${serviceName}`, [], { sudo, logging: true });
         },
 
-        stop: async (serviceName: string, opts: { userService?: boolean } = {}) => {
-          logger.debug(`stopService: ${serviceName}`);
-          const sudo = !opts.userService;
-          const user = opts.userService ? ' --user' : '';
-
-          await this.run(`systemctl${user} stop ${serviceName}`, [], { sudo, logging: true });
-        },
-
-        enable: async (serviceName: string, opts: { userService?: boolean } = {}) => {
-          logger.debug(`enableService: ${serviceName}`);
-          const sudo = !opts.userService;
-          const user = opts.userService ? ' --user' : '';
-
-          await this.run(`systemctl${user} enable ${serviceName}`, [], { sudo, logging: true });
-        },
-
-        disable: async (serviceName: string, opts: { userService?: boolean } = {}) => {
-          logger.debug(`disableService: ${serviceName}`);
-          const sudo = !opts.userService;
-          const user = opts.userService ? ' --user' : '';
-
-          await this.run(`systemctl${user} disable ${serviceName}`, [], { sudo, logging: true });
-        },
+        start: async (serviceName: string, opts: { userService?: boolean } = {}) =>
+          this.systemd.service.systemctl('start', serviceName, opts),
+        stop: async (serviceName: string, opts: { userService?: boolean } = {}) =>
+          this.systemd.service.systemctl('stop', serviceName, opts),
+        restart: async (serviceName: string, opts: { userService?: boolean } = {}) =>
+          this.systemd.service.systemctl('restart', serviceName, opts),
+        enable: async (serviceName: string, opts: { userService?: boolean } = {}) =>
+          this.systemd.service.systemctl('enable', serviceName, opts),
+        disable: async (serviceName: string, opts: { userService?: boolean } = {}) =>
+          this.systemd.service.systemctl('disable', serviceName, opts),
       },
 
       journal: {
