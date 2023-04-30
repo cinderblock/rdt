@@ -279,7 +279,7 @@ if (require.main === module) {
   } else {
     process.on('unhandledRejection', (reason, p) => {
       logger.error(`Unhandled Rejection: ${reason}`);
-      p.then(e => logger.error(e)).catch(e => logger.error(e));
+      p.catch(e => handleErrorFatal(e, 4));
     });
 
     logger.silly('Running with esbuild-register loader');
@@ -292,8 +292,8 @@ if (require.main === module) {
 }
 
 const eh = handleError('fatal');
-export async function handleErrorFatal(e: any) {
-  process.exitCode = 2;
+export async function handleErrorFatal(e: any, exitCode = 2) {
+  process.exitCode = exitCode;
   return eh(e);
 }
 
