@@ -478,6 +478,8 @@ export class Remote {
       throw new Error(`Command failed: ${command} ${args.join(' ')}\n\n${stderr}`);
     }
 
+    socket.close();
+
     return { exitCode, stdout, stderr };
   }
 }
