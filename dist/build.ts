@@ -13,6 +13,7 @@ function forceExit() {
 }
 
 function handleError(e: any) {
+  logger.debug('Handling error...');
   logger.error(e);
   process.exitCode = 1;
 }

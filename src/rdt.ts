@@ -149,7 +149,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
       return;
     }
 
-    await targetConfig.handler.onConnected({ rdt });
+    await targetConfig.handler.onConnected({ rdt }).catch(handleError('onConnected'));
   });
 
   // TODO: Is this right?
