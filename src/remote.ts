@@ -422,7 +422,7 @@ export class Remote {
       discardOutput?: boolean;
       logging?: boolean;
       lineHandler?: (line: string, err: boolean) => void;
-      suppressError?: boolean;
+      resolveError?: boolean;
       workingDirectory?: string;
     } = {},
   ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
@@ -495,7 +495,7 @@ export class Remote {
 
     logger.debug(`Command finished. Exit code: ${exitCode}`);
 
-    if (!opts.suppressError && exitCode !== 0) {
+    if (!opts.resolveError && exitCode !== 0) {
       throw new Error(`Command failed: ${command} ${args.join(' ')}\n\n${stderr}`);
     }
 
