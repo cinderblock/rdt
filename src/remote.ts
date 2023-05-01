@@ -234,6 +234,9 @@ export class Remote {
         await promisify(sftp.mkdir.bind(sftp))(dir);
       },
 
+      /**
+       * @return true if the file was changed
+       */
       ensureFileIs: async (path: string, content: string | null, opts: { sudo?: boolean } = {}) => {
         // Check if file exists and has the correct content. If not, create it (and create the directory if needed).
         logger.debug(`ensureFileIs: ${path}`);
@@ -242,10 +245,11 @@ export class Remote {
 
         const current = await this.fs.readFile(path).then(b => b?.toString() ?? null);
 
-        if (current === content) return;
+        if (current === content) return false;
 
         if (content === null) {
-          return this.fs.unlink(path);
+          await this.fs.unlink(path);
+          return true;
         }
 
         await this.fs.mkdirFor(path);
@@ -260,6 +264,8 @@ export class Remote {
           await this.fs.writeFile(randomTempPath, content);
           await this.run(`mv`, [randomTempPath, path], { sudo: true, logging: true });
         });
+
+        return true;
       },
 
       readFile: async (path: string) => {
