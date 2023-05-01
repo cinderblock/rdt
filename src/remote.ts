@@ -370,7 +370,6 @@ export class Remote {
           args.push('--output', 'json');
           const lineHandler = (line: string) => handleJournalJson(line);
 
-          // TODO: return something so that we can control this process...
           return this.run(`journalctl --unit ${serviceName}`, args, {
             lineHandler,
           });
@@ -442,7 +441,8 @@ export class Remote {
       resolveError?: boolean;
       workingDirectory?: string;
     } = {},
-  ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  ): // TODO: return something so that we can control this process...
+  Promise<{ exitCode: number; stdout: string; stderr: string }> {
     if (opts.sudo) {
       command = `sudo ${command}`;
     }
