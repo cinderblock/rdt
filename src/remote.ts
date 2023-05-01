@@ -302,12 +302,19 @@ export class Remote {
           await this.run(`systemctl${user} enable ${serviceName}`, [], { sudo, logging: true });
         },
 
-        systemctl: async (command: string, serviceName: string, opts: { userService?: boolean } = {}) => {
+        systemctl: async (
+          command: string,
+          serviceName: string,
+          opts: { args?: string[]; userService?: boolean; logging?: boolean } = {},
+        ) => {
           logger.debug(`systemctl: ${command}`);
           const sudo = !opts.userService;
           const user = opts.userService ? ' --user' : '';
 
-          await this.run(`systemctl${user} ${command} ${serviceName}`, [], { sudo, logging: true });
+          return this.run(`systemctl${user} ${command} ${serviceName}`, opts.args ?? [], {
+            sudo,
+            logging: opts.logging ?? true,
+          });
         },
 
         start: async (serviceName: string, opts: { userService?: boolean } = {}) =>
