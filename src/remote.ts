@@ -10,6 +10,7 @@ import { dirOf } from './util/dirOf';
 import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
 import { ClientChannel } from 'ssh2';
 import { promisify } from 'util';
+import { Server } from 'net';
 
 export enum SerialPortMode {
   'console' = 0,
@@ -33,37 +34,64 @@ export class Remote {
     logger.silly(`Hello from Remote constructor!`);
 
     this.forward = {
-      async toRemoteTarget(target: string, port: number, localPort = port, bindIP?: string) {
+      /**
+       * ssh -L bindIP:localPort:target:port
+       *
+       * RDT's computer   --ssh2-> remote interface    -> remote target
+       * bindIP:localPort --ssh2-> sourceIP:sourcePort -> target:port
+       *
+       * @param port
+       * @param target
+       * @param localPort
+       * @param bindIP
+       * @param sourceIP IP on remote to connect out from
+       * @param sourcePort Port on remote to connect out from
+       */
+      async toRemoteTarget(
+        port: number,
+        target = 'localhost',
+        localPort = port,
+        bindIP?: string,
+        sourceIP = 'localhost',
+        sourcePort = 0,
+      ) {
         const fwd = promisify(connection.forwardOut.bind(connection));
 
-        while (true) {
-          await fwd(bindIP ?? '127.0.0.1', localPort, target, port)
-            .then(async c => {
-              logger.info(`Forwarded port ${localPort} to ${target}:${port}`);
-              return c;
-            })
-            .then(
-              c =>
-                new Promise((resolve, reject) => {
-                  c.on('close', resolve);
-                  c.on('error', reject);
-                }),
-            )
-            .then(() => {
-              logger.info(`Forwarded port ${localPort} to ${target}:${port} closed`);
-            })
-            .catch(e => {
-              logger.error(`Failed to forward port 9229`);
+        logger.debug(`Creating server to forward connections at ${bindIP}:${localPort}`);
 
-              logger.error(e.message);
-              logger.error(`Reason: ${e.reason}`);
-              logger.error(e.stack);
-            });
+        let first = true;
 
-          logger.info(`Forwarding port ${localPort} to ${target}:${port} failed, retrying in 1 second...`);
+        new Server(async incoming => {
+          if (first) {
+            first = false;
+            return;
+          }
 
-          await new Promise(r => setTimeout(r, 1000));
-        }
+          logger.info(`Forwarding port ${localPort} to ${target}:${port} for ${incoming.remoteAddress}`);
+
+          const outgoing = await fwd(sourceIP, sourcePort, target, port);
+
+          incoming.on('error', e => {
+            logger.error(`Error forwarding port ${localPort} to ${target}:${port}`);
+            logger.error(e.message);
+            logger.error(e.stack);
+
+            outgoing.end();
+          });
+
+          await new Promise((resolve, reject) => {
+            outgoing.on('close', resolve);
+            outgoing.on('error', reject);
+            incoming.pipe(outgoing);
+            outgoing.pipe(incoming);
+          }).catch(e => {
+            logger.error(`Error forwarding port ${localPort} to ${target}:${port}`);
+            logger.error(e.message);
+            logger.error(e.stack);
+          });
+
+          logger.info(`Forwarded port ${localPort} to ${target}:${port} closed`);
+        }).listen(localPort, bindIP);
       },
     };
 
