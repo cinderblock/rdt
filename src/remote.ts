@@ -298,10 +298,12 @@ export class Remote {
           const sudo = !opts.userService;
           const user = opts.userService ? ' --user' : '';
 
-          await this.fs.ensureFileIs(
+          const changed = await this.fs.ensureFileIs(
             `${sudo ? '/etc/systemd/system' : '.config/systemd/user'}/${serviceName}.service`,
             generateServiceFileContents(serviceConfig),
           );
+
+          if (!changed) return;
 
           await this.run(`systemctl daemon-reload`, [], { sudo, logging: true });
 
