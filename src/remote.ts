@@ -327,6 +327,16 @@ export class Remote {
           this.systemd.service.systemctl('enable', serviceName, opts),
         disable: async (serviceName: string, opts: { userService?: boolean } = {}) =>
           this.systemd.service.systemctl('disable', serviceName, opts),
+
+        show: async (serviceName: string, property: string, opts: { userService?: boolean } = {}) =>
+          this.systemd.service
+            .systemctl('show', serviceName, {
+              ...opts,
+              logging: false,
+              // Read the value of the property
+              args: ['--property', property, '--value'],
+            })
+            .then(({ stdout }) => stdout.trimEnd()),
       },
 
       journal: {
