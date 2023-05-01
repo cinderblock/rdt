@@ -18,6 +18,7 @@ export enum SerialPortMode {
 }
 
 export class Remote {
+  public forward;
   public sftp;
   public apt;
   public node;
@@ -30,6 +31,41 @@ export class Remote {
 
   constructor(public targetName: string, public targetConfig: Target, public connection: Client) {
     logger.silly(`Hello from Remote constructor!`);
+
+    this.forward = {
+      async toRemoteTarget(target: string, port: number, localPort = port, bindIP?: string) {
+        const fwd = promisify(connection.forwardOut.bind(connection));
+
+        while (true) {
+          await fwd(bindIP ?? '127.0.0.1', localPort, target, port)
+            .then(async c => {
+              logger.info(`Forwarded port ${localPort} to ${target}:${port}`);
+              return c;
+            })
+            .then(
+              c =>
+                new Promise((resolve, reject) => {
+                  c.on('close', resolve);
+                  c.on('error', reject);
+                }),
+            )
+            .then(() => {
+              logger.info(`Forwarded port ${localPort} to ${target}:${port} closed`);
+            })
+            .catch(e => {
+              logger.error(`Failed to forward port 9229`);
+
+              logger.error(e.message);
+              logger.error(`Reason: ${e.reason}`);
+              logger.error(e.stack);
+            });
+
+          logger.info(`Forwarding port ${localPort} to ${target}:${port} failed, retrying in 1 second...`);
+
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      },
+    };
 
     this.reduceWork = {
       /**
