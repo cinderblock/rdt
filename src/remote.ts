@@ -195,6 +195,16 @@ export class Remote {
     };
 
     this.node = {
+      getPath: async (): Promise<string | undefined> => {
+        const exec = await this.run('which node', [], { logging: false, resolveError: true });
+
+        if (exec.exitCode) {
+          logger.debug(`Node.js not installed??`);
+          return;
+        }
+
+        return exec.stdout.trim();
+      },
       getVersion: async (): Promise<void | {
         major: number;
         minor: number;
