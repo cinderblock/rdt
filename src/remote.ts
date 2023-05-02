@@ -71,10 +71,14 @@ export class Remote {
 
           const outgoing = await fwd(sourceIP, sourcePort, target, port);
 
-          incoming.on('error', e => {
-            logger.error(`Error forwarding port ${localPort} to ${target}:${port}`);
-            logger.error(e.message);
-            logger.error(e.stack);
+          incoming.on('error', (e: Error & { code: string }) => {
+            switch (e.code) {
+              default:
+                logger.error(`Error incoming forwarding port ${localPort} to ${target}:${port}`);
+                logger.error(e.message);
+                logger.error(e.code);
+                logger.error(e.stack);
+            }
 
             outgoing.end();
           });
@@ -85,8 +89,9 @@ export class Remote {
             incoming.pipe(outgoing);
             outgoing.pipe(incoming);
           }).catch(e => {
-            logger.error(`Error forwarding port ${localPort} to ${target}:${port}`);
+            logger.error(`Error outgoing forwarding port ${localPort} to ${target}:${port}`);
             logger.error(e.message);
+            logger.error(e.code);
             logger.error(e.stack);
           });
 
