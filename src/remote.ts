@@ -73,6 +73,8 @@ export class Remote {
 
           incoming.on('error', (e: Error & { code: string }) => {
             switch (e.code) {
+              case 'ECONNRESET':
+                break;
               default:
                 logger.error(`Error incoming forwarding port ${localPort} to ${target}:${port}`);
                 logger.error(e.message);
