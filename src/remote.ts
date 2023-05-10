@@ -389,6 +389,7 @@ export class Remote {
           const changed = await this.fs.ensureFileIs(
             `${sudo ? '/etc/systemd/system' : '.config/systemd/user'}/${serviceName}.service`,
             generateServiceFileContents(serviceConfig),
+            { sudo },
           );
 
           if (!changed) return;
