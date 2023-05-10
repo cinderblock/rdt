@@ -124,6 +124,10 @@ export async function rdt(targetName: string, targetConfig: Target) {
     }
   }
 
+  ///////////////////////////////////////////////////////////////
+  ////// Config is parsed and checked. Start doing things. //////
+  ///////////////////////////////////////////////////////////////
+
   const { remote } = targetConfig;
 
   const port = remote.port ? `:${remote.port}` : '';
