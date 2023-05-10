@@ -137,6 +137,7 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
     target: 'node18',
     format: outputESM ? 'esm' : 'cjs',
     sourcemap: true,
+    sourcesContent: false,
     plugins,
     outdir: outDir,
     bundle: true,
