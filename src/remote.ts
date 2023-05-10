@@ -154,43 +154,50 @@ export class Remote {
       });
     });
 
+    const aptOpts = {
+      logging: true,
+      sudo: true,
+      env: {
+        DEBIAN_FRONTEND: 'noninteractive',
+        TERM: 'linux',
+      },
+    };
+
     this.apt = {
       update: async () => {
-        if ((await this.run('apt-get update', [], { logging: true, sudo: true })).exitCode) {
-          throw new Error('Failed to update apt');
-        }
+        await this.run('apt-get update', [], aptOpts);
       },
 
       install: async (packages: string[]) => {
-        return this.run(`apt-get install -y`, packages, { logging: true, sudo: true });
+        return this.run(`apt-get install -y`, packages, aptOpts);
       },
 
       upgrade: async () => {
-        return this.run(`apt-get upgrade -y`, [], { logging: true, sudo: true });
+        return this.run(`apt-get upgrade -y`, [], aptOpts);
       },
 
       autoremove: async () => {
-        return this.run(`apt-get autoremove -y`, [], { logging: true, sudo: true });
+        return this.run(`apt-get autoremove -y`, [], aptOpts);
       },
 
       autoclean: async () => {
-        return this.run(`apt-get autoclean`, [], { logging: true, sudo: true });
+        return this.run(`apt-get autoclean`, [], aptOpts);
       },
 
       fullUpgrade: async () => {
-        return this.run(`apt-get full-upgrade`, [], { logging: true, sudo: true });
+        return this.run(`apt-get full-upgrade`, [], aptOpts);
       },
 
       distUpgrade: async () => {
-        return this.run(`apt-get dist-upgrade`, [], { logging: true, sudo: true });
+        return this.run(`apt-get dist-upgrade`, [], aptOpts);
       },
 
       purge: async (packages: string[]) => {
-        return this.run(`apt-get purge`, packages, { logging: true, sudo: true });
+        return this.run(`apt-get purge`, packages, aptOpts);
       },
 
       remove: async (packages: string[]) => {
-        return this.run(`apt-get remove`, packages, { logging: true, sudo: true });
+        return this.run(`apt-get remove`, packages, aptOpts);
       },
     };
 
