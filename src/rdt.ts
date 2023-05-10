@@ -203,41 +203,43 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   logger.debug(`Found ${files.length} files`);
 
-  await ready;
+  const remoteOps = ready.then(() =>
+    Promise.all(
+      files.map(async function (filePath) {
+        const localPath = typeof filePath == 'string' ? filePath : filePath.relative();
 
-  await Promise.all(
-    files.map(async function (filePath) {
-      const localPath = typeof filePath == 'string' ? filePath : filePath.relative();
+        logger.debug(`Watching ${localPath}`);
 
-      logger.debug(`Watching ${localPath}`);
+        // TODO: debounce file changes
+        let fileChangeTimeout: NodeJS.Timeout | undefined;
 
-      // TODO: debounce file changes
-      let fileChangeTimeout: NodeJS.Timeout | undefined;
+        function trigger(info?: FileChangeInfo<string>) {
+          clearTimeout(changeTimeout);
+          clearTimeout(fileChangeTimeout);
 
-      function trigger(info?: FileChangeInfo<string>) {
-        clearTimeout(changeTimeout);
-        clearTimeout(fileChangeTimeout);
+          fileChangeTimeout = setTimeout(() => {
+            if (!targetConfig.handler.onFileChanged) {
+              logger.debug(`No onFileChanged hook. Changed file: ${localPath}`);
+              return;
+            }
 
-        fileChangeTimeout = setTimeout(() => {
-          if (!targetConfig.handler.onFileChanged) {
-            logger.debug(`No onFileChanged hook. Changed file: ${localPath}`);
-            return;
-          }
+            targetConfig.handler
+              .onFileChanged({ localPath, changeType: 'change', rdt, info })
+              .then(change)
+              .catch(handleError('while deploying'));
+          }, targetConfig.debounceTime ?? 200);
+        }
 
-          targetConfig.handler
-            .onFileChanged({ localPath, changeType: 'change', rdt, info })
-            .then(change)
-            .catch(handleError('while deploying'));
-        }, targetConfig.debounceTime ?? 200);
-      }
+        trigger();
 
-      trigger();
+        for await (const event of watch(localPath)) trigger(event);
 
-      for await (const event of watch(localPath)) trigger(event);
-
-      // TODO: Handle new files / deleted files
-    }),
+        // TODO: Handle new files / deleted files
+      }),
+    ),
   );
+
+  await remoteOps.catch(handleError('Remote Operations'));
 
   function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
