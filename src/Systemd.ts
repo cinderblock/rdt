@@ -18,7 +18,7 @@ export type SystemdService = {
      */
     Restart?: 'always' | 'on-failure' | 'on-abnormal' | 'on-watchdog' | 'on-abort' | 'no';
 
-    Environment?: string[];
+    Environment?: string[] | { [key: string]: string };
     EnvironmentFile?: string[];
 
     /**
@@ -36,13 +36,19 @@ export type SystemdService = {
   };
 };
 
-type Section = { [key: string]: string | string[] };
+type Section = { [key: string]: string | string[] | { [key: string]: string } };
 type Sections = { [key: string]: Section };
 
 function generateServiceSection(section: Section) {
   return Object.entries(section)
     .map(([k, v]) => {
-      if (!Array.isArray(v)) v = [v];
+      if (!Array.isArray(v)) {
+        if (typeof v === 'object') {
+          v = Object.entries(v).map(([k, v]) => `${k}=${v}`);
+        } else {
+          v = [v];
+        }
+      }
       return v.map(v => `${k}=${v}\n`).join('');
     })
     .join('');
