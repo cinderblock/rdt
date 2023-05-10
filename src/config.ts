@@ -6,7 +6,7 @@
 import { BuildAndDeploy } from './BuildAndDeployHandler';
 import logger from './log';
 import { GlobOptions } from 'glob';
-import SSHConfig from 'ssh2-promise/lib/sshConfig';
+import { ConnectConfig } from 'ssh2';
 
 type DevServerOptions = {
   /**
@@ -24,8 +24,8 @@ type DevServerOptions = {
   serveLocal?: boolean | string | undefined;
 };
 
-// TODO: Support Array<SSHConfig>
-type RemoteOptions = SSHConfig & {
+// TODO: Support Array<ConnectConfig>
+type RemoteOptions = ConnectConfig & {
   /**
    * The path on the server to deploy to.
    *
