@@ -3,6 +3,7 @@ import { logger } from './rdt';
 export type SystemdService = {
   Unit: {
     Description: string;
+    Requires?: string;
   };
   Service: {
     ExecStart: string;
