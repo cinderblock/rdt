@@ -13,6 +13,7 @@ import { addToArrayUnique } from './util/addToArrayUnique';
 import { Remote } from './remote';
 import { handleError } from './Errors';
 import { doDevServer } from './devServer';
+import { sleep } from './util/sleep';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
@@ -246,10 +247,6 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   await remoteOps.catch(handleError('Remote Operations'));
   await ds.catch(handleError('Local UI Development Server'));
-
-  function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 
   logger.warn('Sleeping');
   await sleep(100000000);
