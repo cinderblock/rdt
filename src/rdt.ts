@@ -119,7 +119,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
     }
 
     if (Array.isArray(targetConfig.watch.options.ignore)) {
-      const builtInIgnore = ['node_modules/**', 'package-lock.json', 'yarn.lock', ...logFiles, 'rdt.ts'];
+      const builtInIgnore = ['**/node_modules/**', '**/package-lock.json', '**/yarn.lock', ...logFiles, 'rdt.ts'];
 
       addToArrayUnique(targetConfig.watch.options.ignore, ...builtInIgnore);
     }
