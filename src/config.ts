@@ -19,7 +19,7 @@ type DevServerOptions = {
    *
    * If so, what directory should we serve from?
    *
-   * @default src/www (true or undefined)
+   * @default src/ui/public (true or undefined)
    */
   serveLocal?: boolean | string | undefined;
 };

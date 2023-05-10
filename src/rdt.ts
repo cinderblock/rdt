@@ -12,6 +12,7 @@ import { cli } from './cli';
 import { addToArrayUnique } from './util/addToArrayUnique';
 import { Remote } from './remote';
 import { handleError } from './Errors';
+import { doDevServer } from './devServer';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
 export { Config, Target, Targets } from './config';
@@ -128,6 +129,10 @@ export async function rdt(targetName: string, targetConfig: Target) {
   ////// Config is parsed and checked. Start doing things. //////
   ///////////////////////////////////////////////////////////////
 
+  const { devServer } = targetConfig;
+
+  const ds = doDevServer(devServer).then(() => logger.debug('Local UI Development Server ended normally'));
+
   const { remote } = targetConfig;
 
   const port = remote.port ? `:${remote.port}` : '';
@@ -240,6 +245,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
   );
 
   await remoteOps.catch(handleError('Remote Operations'));
+  await ds.catch(handleError('Local UI Development Server'));
 
   function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
