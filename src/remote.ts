@@ -2,7 +2,7 @@
  * Tools that do useful things on remote in RDT
  */
 
-import { Client, SFTPWrapper } from 'ssh2';
+import { Client, SFTPWrapper, ShellOptions } from 'ssh2';
 import { Target } from './config';
 import logger from './log';
 import { SystemdService, generateServiceFileContents, handleJournalJson } from './Systemd';
@@ -530,22 +530,27 @@ export class Remote {
   public async run(
     command: string,
     args: string[] = [],
-    opts: {
-      sudo?: boolean;
-      discardOutput?: boolean;
-      logging?: boolean;
-      lineHandler?: (line: string, err: boolean) => void;
-      resolveError?: boolean;
-      workingDirectory?: string;
-    } = {},
+    opts: Partial<{
+      sudo: boolean;
+      discardOutput: boolean;
+      logging: boolean;
+      lineHandler: (line: string, err: boolean) => void;
+      resolveError: boolean;
+      workingDirectory: string;
+      env: { [key: string]: string };
+    }> = {},
   ): // TODO: return something so that we can control this process...
+  // TODO: why is colorizer broken by this?
   Promise<{ exitCode: number; stdout: string; stderr: string }> {
     if (opts.sudo) {
       command = `sudo ${command}`;
     }
 
     // We need to start a shell so that we can change directories before execution
-    const shell = await promisify<false, ClientChannel>(this.connection.shell.bind(this.connection))(false);
+    const shell = await promisify<false, ShellOptions, ClientChannel>(this.connection.shell.bind(this.connection))(
+      false,
+      { env: opts.env },
+    );
 
     logger.debug(`Running command: ${command} ${args.join(' ')}`);
 
