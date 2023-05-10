@@ -26,6 +26,14 @@ export async function doDevServer(ds: Target['devServer']) {
     // outdir: ds.serveLocal,
     sourcemap: 'inline',
     sourcesContent: false,
+    loader: {
+      '.png': 'dataurl',
+      '.woff': 'dataurl',
+      '.woff2': 'dataurl',
+      '.eot': 'dataurl',
+      '.ttf': 'dataurl',
+      '.svg': 'dataurl',
+    },
   });
 
   await ctx.watch();
