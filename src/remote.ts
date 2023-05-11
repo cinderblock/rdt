@@ -197,7 +197,7 @@ export class Remote {
       },
 
       remove: async (packages: string[]) => {
-        return this.run(`apt-get remove`, packages, aptOpts);
+        return this.run(`apt-get remove -y`, packages, aptOpts);
       },
     };
 
