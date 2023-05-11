@@ -19,6 +19,8 @@ export async function doDevServer(ds: Target['devServer']) {
 
   const entryPoints = Array.isArray(entry) ? entry : [entry];
 
+  logger.info(`Serving ${entryPoints.join(', ')}`);
+
   const ctx = await esbuild.context({
     entryPoints,
     bundle: true,
@@ -36,11 +38,16 @@ export async function doDevServer(ds: Target['devServer']) {
     },
   });
 
-  await ctx.watch();
+  try {
+    await ctx.watch();
 
-  const { host, port } = await ctx.serve({
-    servedir: ds.serveLocal,
-  });
+    const { host, port } = await ctx.serve({
+      servedir: ds.serveLocal,
+    });
 
-  logger.info(`Serving on http://localhost:${port}`);
+    logger.info(`Serving on http://localhost:${port}`);
+  } catch (err) {
+    logger.error("Error in devServer's esbuild context");
+    logger.error(err);
+  }
 }
