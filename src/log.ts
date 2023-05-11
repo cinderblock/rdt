@@ -13,37 +13,30 @@ const logger = winston.createLogger({
   // ],
 });
 
+export const labels = {
+  build: '📦',
+  // Not sure why `🖥️` needs an extra whitespace to align with others...
+  rdt: '🖥️ ',
+  user: '👤',
+  systemd: '🔧',
+  application: '🏃',
+};
+
 export function rdtLogFormat() {
   return winston.format(info => {
     // Windows gets an extra space in the console
-    const sep = process.platform === 'win32' ? ' ' : '';
-    switch (info.label) {
-      case 'rdt-build':
-        info.message = '📦' + sep + info.message;
-        delete info.label;
-        break;
-      case 'rdt':
-        // Not sure why `🖥️` needs an extra whitespace to align with others...
-        info.message = '🖥️ ' + sep + info.message;
-        delete info.label;
-        break;
-      case 'user':
-        info.message = '👤' + sep + info.message;
-        delete info.label;
-        break;
-      case 'systemd':
-        info.message = '🔧' + sep + info.message;
-        delete info.label;
-        break;
-      case 'application':
-        info.message = '🏃' + sep + info.message;
-        delete info.label;
-        break;
-      default:
-        info.message = '❔' + sep + info.message;
-        break;
+
+    if (info.label) {
+      const sep = process.platform === 'win32' ? ' ' : '';
+
+      const label = labels[info.label as keyof typeof labels] ?? '❔';
+
+      info.message = label + sep + info.message;
+
+      delete info.label;
     }
-    // Account for varying width of label
+
+    // Account for varying width of log level name and align other log messages
     info.message = '\t' + info.message;
     return info;
   })();
@@ -62,4 +55,4 @@ export default logger.child({ label: 'rdt' });
 
 export const userLogger = logger.child({ label: 'user' });
 
-export const buildLogger = logger.child({ label: 'rdt-build' });
+export const buildLogger = logger.child({ label: 'build' });
