@@ -15,8 +15,7 @@
     "build": "esr dist/build.ts",
     "build-watch": "esr dist/build.ts --watch",
     "watch": "npm run build-watch",
-    "run": "node --enable-source-maps .dist",
-    "start": "npm run build && npm run run",
+    "start": "npm run build",
     "prepare": "npm run build"
   },
   "repository": {
