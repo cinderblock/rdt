@@ -52,25 +52,26 @@ export async function rdt(targetName: string, targetConfig: Target) {
     targetConfig.remote.host = targetName;
   }
 
-  const m = targetConfig.remote.host.match(
-    /^(?:(?<user>[a-z_](?:[a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$))@)(?<hostname>[a-zA-Z0-9-.]+)(?::(?<port>[1-9]\d*))$/,
-  );
-  if (m) {
-    if (m.groups?.user) {
+  const hostRegex =
+    /^(?:(?<user>[a-z_](?:[a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$))@)?(?<hostname>[a-zA-Z0-9-.]+)(?::(?<port>[1-9]\d*))?$/;
+  const m = targetConfig.remote.host.match(hostRegex);
+  if (m?.groups) {
+    const { user, hostname, port } = m.groups;
+    if (user) {
       if (targetConfig.remote.username) {
         throw new Error(`Username specified in hostname and username option`);
       }
-      targetConfig.remote.username = m.groups?.user;
+      targetConfig.remote.username = user;
     }
-    if (m.groups?.port) {
+    if (port) {
       if (targetConfig.remote.port) {
         throw new Error(`Port specified in hostname and port option`);
       }
-      const i = parseInt(m.groups?.port);
-      if (!(i > 0 && i < 65536)) throw new Error(`Invalid port: ${m.groups?.port}`);
+      const i = parseInt(port);
+      if (!(i > 0 && i < 65536)) throw new Error(`Invalid port: ${port}`);
       targetConfig.remote.port = i;
     }
-    targetConfig.remote.host = m.groups?.hostname;
+    targetConfig.remote.host = hostname;
   }
 
   if (!targetConfig.remote.username) {
