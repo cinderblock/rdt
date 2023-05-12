@@ -3,7 +3,7 @@
 import { fork } from 'child_process';
 import { Target } from './config';
 import logger, { logFiles } from './log';
-import { Client } from 'ssh2';
+import { Client as SSHClient } from 'ssh2';
 import { glob } from 'glob';
 import { FileChangeInfo, watch } from 'fs/promises';
 import { FileChangeResult } from './BuildAndDeployHandler';
@@ -141,7 +141,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   logger.info(`Connecting to remote: ${remote.host}${port} as ${remote.username}`);
 
-  const connection = new Client();
+  const connection = new SSHClient();
 
   const rdt = new Remote(targetName, targetConfig, connection);
 
