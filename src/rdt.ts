@@ -133,8 +133,6 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   const { devServer } = targetConfig;
 
-  const ds = doDevServer(devServer).then(() => logger.debug('Local UI Development Server ended normally'));
-
   const { remote } = targetConfig;
 
   const port = remote.port ? `:${remote.port}` : '';
@@ -144,6 +142,8 @@ export async function rdt(targetName: string, targetConfig: Target) {
   const connection = new SSHClient();
 
   const rdt = new Remote(targetName, targetConfig, connection);
+
+  const ds = doDevServer(devServer, rdt).then(() => logger.debug('Local UI Development Server ended normally'));
 
   // Find all files in target.watchGlob
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
