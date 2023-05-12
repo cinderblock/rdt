@@ -59,14 +59,7 @@ export class Remote {
 
         logger.debug(`Creating server to forward connections at ${bindIP}:${localPort}`);
 
-        let first = true;
-
         new Server(async incoming => {
-          if (first) {
-            first = false;
-            return;
-          }
-
           logger.info(`Forwarding port ${localPort} to ${target}:${port} for ${incoming.remoteAddress}`);
 
           const outgoing = await fwd(sourceIP, sourcePort, target, port);
