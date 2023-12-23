@@ -25,7 +25,6 @@ if (require.main === module) {
     .then(() => logger.debug('Build exited normally'))
     .then(forceExit)
     .catch(handleError);
-}
 
 process.on('unhandledRejection', e => {
   logger.error('Unhandled rejection:');
@@ -39,6 +38,7 @@ process.on('uncaughtException', e => {
   process.exitCode = 2;
   forceExit();
 });
+}
 
 export type Options = {
   distDir: string;
