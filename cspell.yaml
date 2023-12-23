@@ -7,10 +7,12 @@ ignorePaths:
 dictionaries:
   - en_US
   - filetypes
-  - names
-  - export
-  - words
+
+  # Local dictionaries
   - dependencies
+  - export
+  - names
+  - words
 dictionaryDefinitions:
   - name: dependencies
     path: ./CSpell/dependencies.txt
