@@ -26,18 +26,18 @@ if (require.main === module) {
     .then(forceExit)
     .catch(handleError);
 
-process.on('unhandledRejection', e => {
-  logger.error('Unhandled rejection:');
-  logger.error(e);
-  process.exitCode = 2;
-  forceExit();
-});
-process.on('uncaughtException', e => {
-  logger.error('Uncaught exception:');
-  logger.error(e);
-  process.exitCode = 2;
-  forceExit();
-});
+  process.on('unhandledRejection', e => {
+    logger.error('Unhandled rejection:');
+    logger.error(e);
+    process.exitCode = 2;
+    forceExit();
+  });
+  process.on('uncaughtException', e => {
+    logger.error('Uncaught exception:');
+    logger.error(e);
+    process.exitCode = 2;
+    forceExit();
+  });
 }
 
 export type Options = {
