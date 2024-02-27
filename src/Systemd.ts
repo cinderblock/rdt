@@ -30,26 +30,42 @@ export type SystemdService = {
     ExecStartPost?: string[];
     ExecReload?: string;
     ExecStop?: string;
+
+    TimeoutStopSec?: number | string;
+
+    // https://www.freedesktop.org/software/systemd/man/systemd.kill.html
+    KillMode?: 'control-group' | 'mixed' | 'process' | 'none';
+    KillSignal?: string;
+    RestartKillSignal?: string;
+    SendSIGHUP?: boolean;
+    SendSIGKILL?: boolean;
+    FinalKillSignal?: string;
+    WatchdogSignal?: string;
   };
   Install: {
     WantedBy: string;
   };
 };
 
-type Section = { [key: string]: string | string[] | { [key: string]: string } };
+type Section = { [key: string]: number | boolean | string | string[] | { [key: string]: string } };
 type Sections = { [key: string]: Section };
 
 function generateServiceSection(section: Section) {
   return Object.entries(section)
-    .map(([k, v]) => {
-      if (!Array.isArray(v)) {
-        if (typeof v === 'object') {
-          v = Object.entries(v).map(([k, v]) => `${k}=${v}`);
+    .map(([setting, value]) => {
+      if (!Array.isArray(value)) {
+        if (typeof value === 'object') {
+          value = Object.entries(value).map(([k, v]) => `${k}=${v}`);
         } else {
-          v = [v];
+          if (typeof value === 'boolean') {
+            value = value ? 'yes' : 'no';
+          } else if (typeof value === 'number') {
+            value = value.toString();
+          }
+          value = [value];
         }
       }
-      return v.map(v => `${k}=${v}\n`).join('');
+      return value.map(v => `${setting}=${v}\n`).join('');
     })
     .join('');
 }
