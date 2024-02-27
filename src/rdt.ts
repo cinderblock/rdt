@@ -149,9 +149,15 @@ export async function rdt(targetName: string, targetConfig: Target) {
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
 
   const ready = new Promise<void>((resolve, reject) => {
+    function tryConnection() {
+      logger.debug('Trying to connect...');
+      connection.connect(remote);
+    }
+    connection.on('error', () => {
+      logger.debug('Connection failed. Retrying in 1 second...');
+      setTimeout(tryConnection, 1000);
+    });
     connection.on('ready', resolve);
-    connection.on('error', reject);
-    connection.connect(remote);
   }).then(async () => {
     logger.debug('Connected');
 
