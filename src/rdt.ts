@@ -290,6 +290,7 @@ if (require.main === module) {
   } else {
     process.on('unhandledRejection', (reason, p) => {
       logger.error(`Unhandled Rejection: ${reason}`);
+      if (isError(reason)) logger.error(reason?.stack);
       p.catch(e => handleErrorFatal(e, 4));
     });
 
@@ -300,6 +301,10 @@ if (require.main === module) {
       .then(() => logger.debug('Done running...'))
       .then(forceExit());
   }
+}
+
+function isError(e: any): e is Error {
+  return e instanceof Error;
 }
 
 const eh = handleError('fatal');
