@@ -252,8 +252,10 @@ export async function rdt(targetName: string, targetConfig: Target) {
     ),
   );
 
-  await remoteOps.catch(handleError('Remote Operations'));
-  await ds.catch(handleError('Local UI Development Server'));
+  await Promise.all([
+    remoteOps.catch(handleError('Remote Operations')),
+    ds.catch(handleError('Local UI Development Server')),
+  ]);
 
   logger.warn('Sleeping');
   await sleep(100000000);
