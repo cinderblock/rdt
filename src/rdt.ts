@@ -162,7 +162,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
   // Find all files in target.watchGlob
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
 
-  const ready = new Promise<void>((resolve, reject) => {
+  const connected = new Promise<void>((resolve, reject) => {
     function tryConnection() {
       logger.debug('Trying to connect...');
       connection.connect(remote);
@@ -172,7 +172,10 @@ export async function rdt(targetName: string, targetConfig: Target) {
       setTimeout(tryConnection, 1000);
     });
     connection.on('ready', resolve);
-  }).then(async () => {
+    tryConnection();
+  });
+
+  const ready = connected.then(async () => {
     logger.debug('Connected');
 
     if (!targetConfig.handler.onConnected) {
