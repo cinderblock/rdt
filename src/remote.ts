@@ -18,6 +18,9 @@ export enum SerialPortMode {
   'serial' = 2,
 }
 
+/**
+ * Tools that do useful things on remotes
+ */
 export class Remote {
   public forward;
   public sftp;
@@ -57,7 +60,12 @@ export class Remote {
       ) {
         const fwd = promisify(connection.forwardOut.bind(connection));
 
-        logger.debug(`Creating server to forward connections at ${bindIP}:${localPort}`);
+        {
+          const l = `${bindIP ?? '*'}:${localPort}`;
+          const t = `${target}:${port}`;
+          const s = `${sourceIP}:${sourcePort}`;
+          logger.debug(`Creating local server at ${l} to forward connections to target at ${t} from source ${s}`);
+        }
 
         new Server(async incoming => {
           logger.info(`Forwarding port ${localPort} to ${target}:${port} for ${incoming.remoteAddress}`);
@@ -520,6 +528,15 @@ export class Remote {
     };
   }
 
+  /**
+   * Run a command on the remote system.
+   *
+   * @note Not passed through a shell, so no shell features are available.
+   * @param command Path to the command to run
+   * @param args Arguments to pass to the command
+   * @param opts
+   * @returns A promise that resolves with the exit code and outputs of the command
+   */
   public async run(
     command: string,
     args: string[] = [],
@@ -552,7 +569,7 @@ export class Remote {
       shell.write(`cd ${opts.workingDirectory}\n`);
     }
 
-    // TODO: escape command and args
+    // TODO: escape command and args or not actually use shell!
     shell.write(`${command} ${args.join(' ')}\n`);
 
     // We need to exit so that we can "detect" the shell has finished executing the command

@@ -11,7 +11,7 @@ export async function cli(...args: string[]) {
     case undefined:
     case 'dev':
       const args = await rdtArgs(...rest);
-      logger.debug('Selected target:', args[0]);
+      logger.debug(`Selected target: ${args[0]}`);
       return rdt(...args);
     case 'help':
       return help(...rest);

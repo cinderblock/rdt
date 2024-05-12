@@ -21,12 +21,14 @@ export { userLogger as logger } from './log';
 export { SerialPortMode } from './remote';
 
 export async function rdt(targetName: string, targetConfig: Target) {
-  logger.info(`RDT Target: ${targetName}`);
+  logger.info(`RDT Target ${targetName} starting`);
 
   /**
-   * Start in parallel:
-   *  - Watch for changes in sources
-   *  - Start connection to remote
+   * Pseudo-code:
+   * - Parse config
+   * - Start in parallel:
+   *   - Watch for changes in sources
+   *   - Start connection to remote
    *
    * On Change:
    *  - Run `onFileChanged` hook from `rdt.ts`
@@ -41,6 +43,10 @@ export async function rdt(targetName: string, targetConfig: Target) {
    * - Run `onDisconnected` hook from `rdt.ts`
    */
 
+  ///////////////////////////////////////////////////////////
+  ////// First, set up the config in a consistent way. //////
+  ///////////////////////////////////////////////////////////
+
   if (typeof targetConfig.devServer === 'string') {
     targetConfig.devServer = { entry: targetConfig.devServer };
   }
@@ -52,28 +58,34 @@ export async function rdt(targetName: string, targetConfig: Target) {
     targetConfig.remote.host = targetName;
   }
 
-  const hostRegex =
-    /^(?:(?<user>[a-z_](?:[a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$))@)?(?<hostname>[a-zA-Z0-9-.]+)(?::(?<port>[1-9]\d*))?$/;
-  const m = targetConfig.remote.host.match(hostRegex);
-  if (m?.groups) {
-    const { user, hostname, port } = m.groups;
+  // Extract username, hostname, and port from host
+  const remoteConfig = targetConfig.remote.host.match(
+    /^(?:(?<user>[a-z_](?:[a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$))@)?(?<hostname>[a-zA-Z0-9-.]+)(?::(?<port>[1-9]\d*))?$/,
+  )?.groups;
+
+  if (remoteConfig) {
+    const { user, hostname, port } = remoteConfig;
+
     if (user) {
       if (targetConfig.remote.username) {
         throw new Error(`Username specified in hostname and username option`);
       }
       targetConfig.remote.username = user;
     }
+
     if (port) {
       if (targetConfig.remote.port) {
-        throw new Error(`Port specified in hostname and port option`);
+        throw new Error(`Port specified twice. In hostname and port option. Use only one.`);
       }
       const i = parseInt(port);
-      if (!(i > 0 && i < 65536)) throw new Error(`Invalid port: ${port}`);
+      if (i <= 0 || i > 0xffff) throw new Error(`Invalid port: ${port}`);
       targetConfig.remote.port = i;
     }
+
     targetConfig.remote.host = hostname;
   }
 
+  // Default username
   if (!targetConfig.remote.username) {
     targetConfig.remote.username = 'pi';
   }
@@ -93,7 +105,8 @@ export async function rdt(targetName: string, targetConfig: Target) {
     } else if (process.platform === 'win32') {
       logger.debug('Windows detected. Trying to use OpenSSH agent');
       targetConfig.remote.agent = '\\\\.\\pipe\\openssh-ssh-agent';
-      // TODO: PuTTY?
+      // TODO: PuTTY\Pageant?
+      // targetConfig.remote.agent = 'pageant';
     } else {
       const key = await findPrivateKey();
       if (key) {
@@ -127,23 +140,24 @@ export async function rdt(targetName: string, targetConfig: Target) {
     }
   }
 
-  ///////////////////////////////////////////////////////////////
-  ////// Config is parsed and checked. Start doing things. //////
-  ///////////////////////////////////////////////////////////////
-
-  const { devServer } = targetConfig;
-
   const { remote } = targetConfig;
 
   const port = remote.port ? `:${remote.port}` : '';
 
+  ///////////////////////////////////////////////////////////////
+  ////// Config is parsed and checked. Start doing things. //////
+  ///////////////////////////////////////////////////////////////
+
   logger.info(`Connecting to remote: ${remote.host}${port} as ${remote.username}`);
 
+  // TODO: I forget why I made connection local to this context instead of inside Remote...
   const connection = new SSHClient();
 
   const rdt = new Remote(targetName, targetConfig, connection);
 
-  const ds = doDevServer(devServer, rdt).then(() => logger.debug('Local UI Development Server ended normally'));
+  const ds = doDevServer(targetConfig.devServer, rdt).then(() =>
+    logger.debug('Local UI Development Server ended normally'),
+  );
 
   // Find all files in target.watchGlob
   const items = glob(targetConfig.watch.glob, targetConfig.watch.options);
