@@ -280,7 +280,9 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
 if (require.main === module) {
   if (!process.execArgv.includes('--experimental-loader')) {
+    // Missing necessary flag. Instead of failing, re-run with the flag set.
     logger.silly('Re-running with esbuild-register loader');
+
     const [nodeBin, module, ...args] = process.argv;
     fork(module, args, {
       // Ensure we're using the node binary that we installed
@@ -313,31 +315,48 @@ if (require.main === module) {
       logger.warn('Node version > 19 detected. Has the --experimental-loader flag been removed?');
     }
   } else {
+    // Normal execution
+    logger.silly('Running with esbuild-register loader');
+
+    // Handle uncaught exceptions and rejections gracefully
     process.on('unhandledRejection', (reason, p) => {
       logger.error(`Unhandled Rejection: ${reason}`);
       if (isError(reason)) logger.error(reason?.stack);
+      // Print errors consistently
       p.catch(e => handleErrorFatal(e, 4));
     });
 
-    logger.silly('Running with esbuild-register loader');
+    // Call the cli function with the arguments passed to the script
     cli(...process.argv.slice(2))
       .then(() => logger.debug('Normal exit'))
+      // Print errors consistently
       .catch(handleErrorFatal)
       .then(() => logger.debug('Done running...'))
+      // In case something is still running, force exit after a timeout
       .then(forceExit());
   }
 }
+
+// Helper Functions
 
 function isError(e: any): e is Error {
   return e instanceof Error;
 }
 
+// Cache the handleError('fatal') function
 const eh = handleError('fatal');
+
+// Handle errors and exit with a specified exit code (default 2)
 export async function handleErrorFatal(e: any, exitCode = 2) {
   process.exitCode = exitCode;
   return eh(e);
 }
 
+/**
+ * Force the process to exit after a specified timeout
+ * @param timeout
+ * @returns
+ */
 function forceExit(timeout = 1000) {
   return () =>
     setTimeout(() => {
