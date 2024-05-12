@@ -278,63 +278,75 @@ export async function rdt(targetName: string, targetConfig: Target) {
   await sleep(100000000);
 }
 
-if (require.main === module) {
+// Check if being run as a script. If so, run the cli function with the arguments passed to the script.
+if (require.main === module) boot();
+
+export async function boot() {
   if (!process.execArgv.includes('--experimental-loader')) {
     // Missing necessary flag. Instead of failing, re-run with the flag set.
-    logger.silly('Re-running with esbuild-register loader');
-
-    const [nodeBin, module, ...args] = process.argv;
-    fork(module, args, {
-      // Ensure we're using the node binary that we installed
-      execPath: 'node_modules/node/bin/node',
-      execArgv: [
-        ...process.execArgv,
-
-        // TODO: Do we need to use a different option (--loader) for older versions of node?
-        '--experimental-loader',
-        'esbuild-register/loader',
-
-        '--require',
-        'esbuild-register',
-
-        // Might as well enable source maps while we're here
-        '--enable-source-maps',
-
-        // Watch for changes and re-run
-        // Disabled for https://github.com/nodejs/node/issues/47692
-        // '--watch',
-
-        // Prevent warnings: "(node:29160) ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time"
-        // Note, this also prevents other warnings that may be useful... Run without this flag periodically to check for other warnings
-        '--no-warnings',
-      ],
-    }).once('close', process.exit);
-
-    // Tested up to node 19.0.0
-    if (parseInt(process.version.slice(1)) > 19) {
-      logger.warn('Node version > 19 detected. Has the --experimental-loader flag been removed?');
-    }
+    relaunchWithLoader();
   } else {
-    // Normal execution
-    logger.silly('Running with esbuild-register loader');
-
-    // Handle uncaught exceptions and rejections gracefully
-    process.on('unhandledRejection', (reason, p) => {
-      logger.error(`Unhandled Rejection: ${reason}`);
-      if (isError(reason)) logger.error(reason?.stack);
-      // Print errors consistently
-      p.catch(e => handleErrorFatal(e, 4));
-    });
-
-    // Call the cli function with the arguments passed to the script
-    cli(...process.argv.slice(2))
-      .then(() => logger.debug('Normal exit'))
-      // Print errors consistently
-      .catch(handleErrorFatal)
-      .then(() => logger.debug('Done running...'))
-      // In case something is still running, force exit after a timeout
-      .then(forceExit());
+    main();
   }
+}
+
+export async function main() {
+  // Normal execution
+  logger.silly('Running with esbuild-register loader');
+
+  // Handle uncaught exceptions and rejections gracefully
+  process.on('unhandledRejection', (reason, p) => {
+    logger.error(`Unhandled Rejection: ${reason}`);
+    if (isError(reason)) logger.error(reason?.stack);
+    // Print errors consistently
+    p.catch(e => handleErrorFatal(e, 4));
+  });
+
+  // Call the cli function with the arguments passed to the script
+  await cli(...process.argv.slice(2))
+    .then(() => logger.debug('Normal exit'))
+    // Print errors consistently
+    .catch(handleErrorFatal);
+
+  logger.debug('Done running...');
+
+  // In case something is still running, force exit after a timeout
+  forceExit();
+}
+
+async function relaunchWithLoader() {
+  logger.silly('Re-running with esbuild-register loader');
+
+  // Tested up to node 19.0.0
+  if (parseInt(process.version.slice(1)) > 19) {
+    logger.warn('Node version > 19 detected. Has the --experimental-loader flag been removed?');
+  }
+
+  const [nodeBin, module, ...args] = process.argv;
+  fork(module, args, {
+    // Ensure we're using the node binary that we installed
+    execPath: 'node_modules/node/bin/node',
+    execArgv: [
+      ...process.execArgv,
+
+      // TODO: Do we need to use a different option (--loader) for older versions of node?
+      '--experimental-loader',
+      'esbuild-register/loader',
+
+      '--require',
+      'esbuild-register',
+
+      // Might as well enable source maps while we're here
+      '--enable-source-maps',
+
+      // Watch for changes and re-run
+      '--watch',
+
+      // Prevent warnings: "(node:29160) ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time"
+      // Note, this also prevents other warnings that may be useful... Run without this flag periodically to check for other warnings
+      '--no-warnings',
+    ],
+  }).once('close', process.exit);
 }
 
 // Helper Functions
