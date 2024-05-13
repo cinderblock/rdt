@@ -282,12 +282,7 @@ export async function rdt(targetName: string, targetConfig: Target) {
 if (require.main === module) boot();
 
 export async function boot() {
-  if (!process.execArgv.includes('--experimental-loader')) {
-    // Missing necessary flag. Instead of failing, re-run with the flag set.
-    relaunchWithLoader();
-  } else {
-    main();
-  }
+  relaunchWithLoader() || main();
 }
 
 export async function main() {
@@ -314,8 +309,20 @@ export async function main() {
   forceExit();
 }
 
+/**
+ * Relaunch the process with the esbuild-register loader, if required
+ * @returns true if the process was relaunched with the loader
+ */
 async function relaunchWithLoader() {
   logger.silly('Re-running with esbuild-register loader');
+
+  const flag = '--experimental-loader';
+  // const flag = '--loader';
+  if (process.execArgv.includes(flag)) return false;
+
+  // return false; // Testing
+
+  // Missing necessary flag. Instead of failing, re-run with the flag set.
 
   // Tested up to node 19.0.0
   if (parseInt(process.version.slice(1)) > 19) {
@@ -330,8 +337,10 @@ async function relaunchWithLoader() {
       ...process.execArgv,
 
       // TODO: Do we need to use a different option (--loader) for older versions of node?
-      '--experimental-loader',
+      flag,
       'esbuild-register/loader',
+
+      '--experimental-modules',
 
       '--require',
       'esbuild-register',
@@ -347,6 +356,8 @@ async function relaunchWithLoader() {
       '--no-warnings',
     ],
   }).once('close', process.exit);
+
+  return true;
 }
 
 // Helper Functions
