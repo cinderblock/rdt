@@ -29,8 +29,8 @@ if (require.main === module) {
   parseArgs(...process.argv.slice(2))
     .then(main)
     .then(() => logger.debug('Build exited normally'))
-    .then(forceExit)
-    .catch(handleError);
+    .catch(handleError)
+    .then(forceExit);
 
   process.on('unhandledRejection', e => {
     logger.error('Unhandled rejection:');
