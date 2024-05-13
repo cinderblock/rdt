@@ -1,4 +1,4 @@
-import { Remote } from './remote';
+import { Remote } from './remote.js';
 import { FileChangeInfo as FileChangeInfoNode } from 'fs/promises';
 
 export type BuildResult = {

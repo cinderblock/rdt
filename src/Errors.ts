@@ -1,4 +1,4 @@
-import logger from './log';
+import logger from './log.js';
 
 export function handleError(type: string) {
   return async (e: any) => {

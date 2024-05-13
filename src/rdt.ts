@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
 import { fork } from 'child_process';
-import { Target } from './config';
-import logger, { logFiles } from './log';
+import { Target } from './config.js';
+import logger, { logFiles } from './log.js';
 import { Client as SSHClient } from 'ssh2';
 import { glob } from 'glob';
 import { FileChangeInfo, watch } from 'fs/promises';
-import { FileChangeResult } from './BuildAndDeployHandler';
-import { findPrivateKey } from './util/findPrivateKey';
-import { cli } from './cli';
-import { addToArrayUnique } from './util/addToArrayUnique';
-import { Remote } from './remote';
-import { handleError } from './Errors';
-import { doDevServer } from './devServer';
-import { sleep } from './util/sleep';
+import { FileChangeResult } from './BuildAndDeployHandler.js';
+import { findPrivateKey } from './util/findPrivateKey.js';
+import { cli } from './cli.js';
+import { addToArrayUnique } from './util/addToArrayUnique.js';
+import { Remote } from './remote.js';
+import { handleError } from './Errors.js';
+import { doDevServer } from './devServer.js';
+import { sleep } from './util/sleep.js';
 
-export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler';
-export { Config, Target, Targets } from './config';
-export { userLogger as logger } from './log';
-export { SerialPortMode } from './remote';
+export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler.js';
+export { Config, Target, Targets } from './config.js';
+export { userLogger as logger } from './log.js';
+export { SerialPortMode } from './remote.js';
 
 export async function rdt(targetName: string, targetConfig: Target) {
   logger.info(`RDT Target ${targetName} starting`);

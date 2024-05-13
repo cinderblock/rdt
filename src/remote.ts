@@ -3,11 +3,11 @@
  */
 
 import { Client, SFTPWrapper, ShellOptions } from 'ssh2';
-import { Target } from './config';
-import logger from './log';
-import { SystemdService, generateServiceFileContents, handleJournalJson } from './Systemd';
-import { dirOf } from './util/dirOf';
-import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds';
+import { Target } from './config.js';
+import logger from './log.js';
+import { SystemdService, generateServiceFileContents, handleJournalJson } from './Systemd.js';
+import { dirOf } from './util/dirOf.js';
+import { getUnofficialBuilds } from './util/getUnofficialNodeBuilds.js';
 import { ClientChannel } from 'ssh2';
 import { promisify } from 'util';
 import { Server } from 'net';

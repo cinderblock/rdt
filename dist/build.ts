@@ -1,8 +1,9 @@
 import { writeFile, mkdir, copyFile, rm, readdir } from 'fs/promises';
 import esbuild from 'esbuild';
+import esMain from 'es-main';
 import { join } from 'path';
 import { dtsPlugin } from 'esbuild-plugin-d.ts';
-import { buildLogger as logger } from '../src/log';
+import { buildLogger as logger } from '../src/log.js';
 
 function forceExit() {
   // TODO: why does setting this to 1 make it trigger?
@@ -24,7 +25,7 @@ function handleError(e: any) {
   process.exitCode = 1;
 }
 
-if (require.main === module) {
+if (esMain(import.meta)) {
   logger.debug('Running main build');
   parseArgs(...process.argv.slice(2))
     .then(main)

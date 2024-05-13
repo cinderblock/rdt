@@ -1,6 +1,6 @@
-import { config, Target } from './config';
-import logger from './log';
-import { rdt } from './rdt';
+import { config, Target } from './config.js';
+import logger from './log.js';
+import { rdt } from './rdt.js';
 
 export async function cli(...args: string[]) {
   const [command, ...rest] = args;

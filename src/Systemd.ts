@@ -1,4 +1,4 @@
-import { logger } from './rdt';
+import { logger } from './rdt.js';
 
 export type SystemdService = {
   Unit: {

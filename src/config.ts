@@ -3,8 +3,8 @@
  * Load the rdt config file
  */
 
-import { BuildAndDeploy } from './BuildAndDeployHandler';
-import logger from './log';
+import { BuildAndDeploy } from './BuildAndDeployHandler.js';
+import logger from './log.js';
 import { GlobOptions } from 'glob';
 import { ConnectConfig } from 'ssh2';
 

@@ -1,5 +1,5 @@
 import { readFile } from 'fs/promises';
-import logger from '../log';
+import logger from '../log.js';
 
 export async function findPrivateKey(): Promise<Buffer | null> {
   const home = process.platform === 'win32' ? process.env.UserProfile : process.env.HOME;

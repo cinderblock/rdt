@@ -5,7 +5,7 @@
       "@cinderblock/rdt": ["./"]
     },
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "resolveJsonModule": true, // Allow importing JSON files. Needed to read package.json for build.
 
     "declaration": true,
