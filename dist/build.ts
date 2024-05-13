@@ -5,10 +5,17 @@ import { dtsPlugin } from 'esbuild-plugin-d.ts';
 import { buildLogger as logger } from '../src/log';
 
 function forceExit() {
+  // TODO: why does setting this to 1 make it trigger?
+  const timeout = 100;
   setTimeout(() => {
     logger.warn('Something is still running. Forcing exit.');
-    process.exit(2);
-  }, 1).unref();
+
+    process.exitCode ??= 0;
+
+    if (typeof process.exitCode == 'number') process.exitCode |= 0b1000_0000;
+
+    process.exit();
+  }, timeout).unref();
 }
 
 function handleError(e: any) {
@@ -34,7 +41,7 @@ if (require.main === module) {
   process.on('uncaughtException', e => {
     logger.error('Uncaught exception:');
     logger.error(e);
-    process.exitCode = 2;
+    process.exitCode = 3;
     forceExit();
   });
 }

@@ -387,7 +387,7 @@ function forceExit(timeout = 1000) {
   return () =>
     setTimeout(() => {
       logger.warn('Forcing exit');
-      if (process.exitCode === undefined) process.exitCode = 0;
+      process.exitCode ??= 0;
       if (typeof process.exitCode == 'number') process.exitCode |= 0x1000_0000;
       process.exit();
     }, timeout).unref();
