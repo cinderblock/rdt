@@ -1,5 +1,4 @@
 import { writeFile, mkdir, copyFile, rm, readdir } from 'fs/promises';
-import winston from 'winston';
 import esbuild from 'esbuild';
 import { join } from 'path';
 import { dtsPlugin } from 'esbuild-plugin-d.ts';
