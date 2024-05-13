@@ -295,12 +295,12 @@ export async function main(catchRejections = true) {
   // Handle uncaught exceptions and rejections gracefully
 
   if (catchRejections) {
-  process.on('unhandledRejection', (reason, p) => {
-    logger.error(`Unhandled Rejection: ${reason}`);
-    if (isError(reason)) logger.error(reason?.stack);
-    // Print errors consistently
-    p.catch(e => handleErrorFatal(e, 4));
-  });
+    process.on('unhandledRejection', (reason, p) => {
+      logger.error(`Unhandled Rejection: ${reason}`);
+      if (isError(reason)) logger.error(reason?.stack);
+      // Print errors consistently
+      p.catch(e => handleErrorFatal(e, 4));
+    });
   }
 
   // Call the cli function with the arguments passed to the script
