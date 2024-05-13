@@ -288,17 +288,20 @@ export async function boot() {
   forceExit();
 }
 
-export async function main() {
+export async function main(catchRejections = true) {
   // Normal execution
   logger.silly('Running with esbuild-register loader');
 
   // Handle uncaught exceptions and rejections gracefully
+
+  if (catchRejections) {
   process.on('unhandledRejection', (reason, p) => {
     logger.error(`Unhandled Rejection: ${reason}`);
     if (isError(reason)) logger.error(reason?.stack);
     // Print errors consistently
     p.catch(e => handleErrorFatal(e, 4));
   });
+  }
 
   // Call the cli function with the arguments passed to the script
   await cli(...process.argv.slice(2))
