@@ -94,6 +94,8 @@ export async function main(options: MainOptions) {
   // Should never happen. Make TypeScript happy.
   if (!isFullOptions(options)) throw new Error('Invalid options');
 
+  logger.debug(`Building to ${distDir}`);
+
   // TODO: check before removing??
   await rm(distDir, { recursive: true }).catch(() => {});
   await mkdir(distDir, { recursive: true });
@@ -113,6 +115,8 @@ export async function main(options: MainOptions) {
 
 async function readme({ distDir, watch }: FullOptions) {
   await copyFile('README.md', join(distDir, 'README.md'));
+
+  logger.silly('Copied README.md');
 
   if (watch) logger.warn('Watching README.md for changes is not (yet) implemented');
 }
@@ -158,7 +162,11 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
     entryPoints: await readdir('src').then(files => files.filter(f => f.endsWith('.ts')).map(f => join('src', f))),
   };
 
-  if (!watch) return await esbuild.build(buildOpts);
+  if (!watch) {
+    const b = esbuild.build(buildOpts);
+    b.then(() => logger.silly('Build finished'));
+    return b;
+  }
 
   const ctx = await esbuild.context(buildOpts);
   await ctx.watch({});
@@ -194,6 +202,8 @@ async function packageJson({ distDir, bundleName, watch, pkg }: FullOptions) {
 
   // Write to `dist/package.json`
   await writeFile(join(distDir, 'package.json'), JSON.stringify(distPackageJson, null, 2));
+
+  logger.silly('Copied filtered package.json');
 
   if (watch) logger.warn('Watching package.json for changes is not (yet) implemented');
 }

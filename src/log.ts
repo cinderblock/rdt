@@ -3,7 +3,7 @@ import winston from 'winston';
 export const logFiles = ['error.log', 'combined.log'];
 
 const logger = winston.createLogger({
-  level: 'debug',
+  level: 'silly',
   format: winston.format.json(),
   // transports: [
   //   // Write all logs with importance level of `error` or less to `error.log`
