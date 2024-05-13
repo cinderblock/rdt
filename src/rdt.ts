@@ -283,6 +283,9 @@ if (require.main === module) boot();
 
 export async function boot() {
   relaunchWithLoader() || main();
+
+  // In case something is still running, force exit after a timeout
+  forceExit();
 }
 
 export async function main() {
@@ -304,9 +307,6 @@ export async function main() {
     .catch(handleErrorFatal);
 
   logger.debug('Done running...');
-
-  // In case something is still running, force exit after a timeout
-  forceExit();
 }
 
 /**
