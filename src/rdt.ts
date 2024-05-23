@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { fork } from 'child_process';
 import { Target } from './config.js';
 import logger, { logFiles } from './log.js';
 import { Client as SSHClient } from 'ssh2';
@@ -8,12 +7,13 @@ import { glob } from 'glob';
 import { FileChangeInfo, watch } from 'fs/promises';
 import { FileChangeResult } from './BuildAndDeployHandler.js';
 import { findPrivateKey } from './util/findPrivateKey.js';
-import { cli } from './cli.js';
 import { addToArrayUnique } from './util/addToArrayUnique.js';
 import { Remote } from './remote.js';
 import { handleError } from './Errors.js';
 import { doDevServer } from './devServer.js';
 import { sleep } from './util/sleep.js';
+import esMain from 'es-main';
+import { boot } from './run.js';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler.js';
 export { Config, Target, Targets } from './config.js';
@@ -278,117 +278,5 @@ export async function rdt(targetName: string, targetConfig: Target) {
   await sleep(100000000);
 }
 
-// Check if being run as a script. If so, run the cli function with the arguments passed to the script.
-if (require.main === module) boot();
-
-export async function boot() {
-  relaunchWithLoader() || main();
-
-  // In case something is still running, force exit after a timeout
-  forceExit();
-}
-
-export async function main(catchRejections = true) {
-  // Normal execution
-  logger.silly('Running with esbuild-register loader');
-
-  // Handle uncaught exceptions and rejections gracefully
-
-  if (catchRejections) {
-    process.on('unhandledRejection', (reason, p) => {
-      logger.error(`Unhandled Rejection: ${reason}`);
-      if (isError(reason)) logger.error(reason?.stack);
-      // Print errors consistently
-      p.catch(e => handleErrorFatal(e, 4));
-    });
-  }
-
-  // Call the cli function with the arguments passed to the script
-  await cli(...process.argv.slice(2))
-    .then(() => logger.debug('Normal exit'))
-    // Print errors consistently
-    .catch(handleErrorFatal);
-
-  logger.debug('Done running...');
-}
-
-/**
- * Relaunch the process with the esbuild-register loader, if required
- * @returns true if the process was relaunched with the loader
- */
-async function relaunchWithLoader() {
-  logger.silly('Re-running with esbuild-register loader');
-
-  const flag = '--experimental-loader';
-  // const flag = '--loader';
-  if (process.execArgv.includes(flag)) return false;
-
-  // return false; // Testing
-
-  // Missing necessary flag. Instead of failing, re-run with the flag set.
-
-  // Tested up to node 19.0.0
-  if (parseInt(process.version.slice(1)) > 19) {
-    logger.warn('Node version > 19 detected. Has the --experimental-loader flag been removed?');
-  }
-
-  const [nodeBin, module, ...args] = process.argv;
-  fork(module, args, {
-    // Ensure we're using the node binary that we installed
-    execPath: 'node_modules/node/bin/node',
-    execArgv: [
-      ...process.execArgv,
-
-      // TODO: Do we need to use a different option (--loader) for older versions of node?
-      flag,
-      'esbuild-register/loader',
-
-      '--experimental-modules',
-
-      '--require',
-      'esbuild-register',
-
-      // Might as well enable source maps while we're here
-      '--enable-source-maps',
-
-      // Watch for changes and re-run
-      '--watch',
-
-      // Prevent warnings: "(node:29160) ExperimentalWarning: Custom ESM Loaders is an experimental feature. This feature could change at any time"
-      // Note, this also prevents other warnings that may be useful... Run without this flag periodically to check for other warnings
-      '--no-warnings',
-    ],
-  }).once('close', process.exit);
-
-  return true;
-}
-
-// Helper Functions
-
-function isError(e: any): e is Error {
-  return e instanceof Error;
-}
-
-// Cache the handleError('fatal') function
-const eh = handleError('fatal');
-
-// Handle errors and exit with a specified exit code (default 2)
-export async function handleErrorFatal(e: any, exitCode = 2) {
-  process.exitCode = exitCode;
-  return eh(e);
-}
-
-/**
- * Force the process to exit after a specified timeout
- * @param timeout
- * @returns
- */
-function forceExit(timeout = 1000) {
-  return () =>
-    setTimeout(() => {
-      logger.warn('Forcing exit');
-      process.exitCode ??= 0;
-      if (typeof process.exitCode == 'number') process.exitCode |= 0x1000_0000;
-      process.exit();
-    }, timeout).unref();
-}
+// Check if being run as a script. If so, run the boot script.
+if (esMain(import.meta)) boot();

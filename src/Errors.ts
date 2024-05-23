@@ -13,3 +13,7 @@ export function handleError(type: string) {
     }
   };
 }
+// Helper Functions
+export function isError(e: any): e is Error {
+  return e instanceof Error;
+}
