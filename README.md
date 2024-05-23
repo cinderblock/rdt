@@ -36,12 +36,12 @@ export const targets: Targets = {
   myPi: {
     handler: {
       async onConnected({ connection, targetName, targetConfig }) {
-        logger.info('connected:', targetName);
+        logger.info(`connected: ${targetName}`);
         logger.info(targetConfig);
       },
 
       async onDisconnected({ targetName, targetConfig }) {
-        logger.info('disconnected:', targetName);
+        logger.info(`disconnected: ${targetName}`);
       },
 
       async onFileChanged({ connection, targetName, targetConfig, localPath }) {
@@ -49,7 +49,7 @@ export const targets: Targets = {
       },
 
       async onDeployed({ connection, targetName, targetConfig, changedFiles }) {
-        logger.info('deployed:', targetName);
+        logger.info(`deployed: ${targetName}`);
       },
     },
     devServer: 'src/ui/index.ts',

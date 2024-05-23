@@ -4,9 +4,9 @@ export function handleError(type: string) {
   return async (e: any) => {
     logger.debug(`Error handler for '${type}'`);
     if (e?.message && e?.stack) {
-      logger.error(e.message);
+      logger.error(`Message: ${e.message}`);
       logger.error(`Error code: ${e.code}`);
-      logger.debug(e.stack);
+      `${e.stack}`.split('\n').forEach(line => logger.debug(line));
     } else {
       logger.error('Unknown error format:');
       logger.error(e);

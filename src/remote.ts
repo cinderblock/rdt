@@ -33,7 +33,11 @@ export class Remote {
   public platform;
   public reduceWork;
 
-  constructor(public targetName: string, public targetConfig: Target, public connection: Client) {
+  constructor(
+    public targetName: string,
+    public targetConfig: Target,
+    public connection: Client,
+  ) {
     logger.silly(`Hello from Remote constructor!`);
 
     this.forward = {
@@ -552,12 +556,13 @@ export class Remote {
       workingDirectory: string;
       env: { [key: string]: string };
     }> = {},
-  ): // TODO: return something so that we can control this process...
-  // TODO: why is colorizer broken by this?
-  Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  ): RemoteExec {
     if (opts.sudo) {
       command = `sudo ${command}`;
     }
+
+    // TODO: don't use shell. We're only using it to change directories.
+    // Long Term plan: Have agent running on remote that can run all desired commands
 
     // We need to start a shell so that we can change directories before execution
     const shell = await promisify<false, ShellOptions, ClientChannel>(this.connection.shell.bind(this.connection))(
@@ -636,3 +641,6 @@ export class Remote {
     return { exitCode, stdout, stderr };
   }
 }
+
+// TODO: return something so that we can control this process...
+export type RemoteExec = Promise<{ exitCode: number; stdout: string; stderr: string }>;

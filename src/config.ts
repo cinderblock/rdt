@@ -110,11 +110,16 @@ export type Config = {
 };
 
 export async function config(): Promise<Config> {
-  logger.silly('Loading config...');
+  logger.silly('Loading config rdt.ts...');
+
   // Open `rdt.ts` in the current directory
+  const path = `file://${process.cwd()}/rdt.ts`;
+
+  logger.silly(`Loading config from ${path}...`);
+
   const {
     default: { version, defaultTarget, targets },
-  } = await import(`file://${process.cwd()}/rdt.ts`);
+  } = await import(path);
   // TODO: Check more directories?
 
   logger.debug('Config loaded');
