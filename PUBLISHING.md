@@ -2,6 +2,10 @@
 
 We're currently publishing to [@cinderblock/rdt](https://www.npmjs.com/package/@cinderblock/rdt) on NPM.
 
+## Pre-publishing
+
+Update change log in [CHANGES.md](CHANGES.md).
+
 ## Publishing
 
 [![Publish](https://github.com/cinderblock/rdt/actions/workflows/publish.yaml/badge.svg?event=push)](https://github.com/cinderblock/rdt/actions/workflows/publish.yaml)
