@@ -4,13 +4,19 @@ We're currently publishing to [@cinderblock/rdt](https://www.npmjs.com/package/@
 
 ## Publishing
 
-Push a new tag that starts with `v` to trigger a publish.
+[![Publish](https://github.com/cinderblock/rdt/actions/workflows/publish.yaml/badge.svg?event=push)](https://github.com/cinderblock/rdt/actions/workflows/publish.yaml)
 
-Make sure to update the version in `package.json` before pushing the tag.
+All publishing is done through GitHub Actions.
+The [`publish` workflow](.github\workflows\publish.yaml) is triggered by a tag push.
 
-The easiest way to do this is to run `npm version patch` or `npm version minor` or `npm version major` to update the version and create a tag.
+The easiest way to do this is:
 
-Then push the tag _(with `git push --tags`)_.
+1.  Update the version in `package.json` and create a tag. Ideally use `npm version` to do this:
+    - `npm version patch` - minor changes, bug fixes
+    - `npm version minor` - new features
+    - `npm version major` - major/breaking changes
+2.  Push the tag
+    - `git push --tags`
 
 ### Script
 
