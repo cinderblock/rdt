@@ -1,5 +1,9 @@
 # Change log
 
+## v0.6.3 (2024-06-02)
+
+- Be less verbose in file watcher initialization
+
 ## v0.6.2 (2024-06-02)
 
 - Minor fix to return type of `rdt.node.getVersion()`

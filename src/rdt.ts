@@ -235,10 +235,14 @@ export async function rdt(targetName: string, targetConfig: Target) {
 
   const remoteOps = ready.then(() =>
     Promise.all(
-      files.map(async function (filePath) {
+      files.map(async (filePath, i) => {
         const localPath = typeof filePath == 'string' ? filePath : filePath.relative();
 
-        logger.debug(`Watching ${localPath}`);
+        if (i < 10) {
+          logger.debug(`Watching ${localPath}`);
+        } else if (i == 10) {
+          logger.debug(`... (${files.length - 10} more files)`);
+        }
 
         // TODO: debounce file changes
         let fileChangeTimeout: NodeJS.Timeout | undefined;
