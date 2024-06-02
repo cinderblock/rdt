@@ -1,5 +1,9 @@
 # Change log
 
+## v0.6.2 (2024-06-02)
+
+- Minor fix to return type of `rdt.node.getVersion()`
+
 ## v0.6.1 (2024-05-23)
 
 - Started changelog

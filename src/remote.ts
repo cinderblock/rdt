@@ -220,15 +220,18 @@ export class Remote {
 
         return exec.stdout.trim();
       },
-      getVersion: async (): Promise<void | {
-        major: number;
-        minor: number;
-        patch: number;
-        versionString: string;
-        semanticVersion: string;
-        prerelease?: string;
-        buildMeta?: string;
-      }> => {
+      getVersion: async (): Promise<
+        | undefined
+        | {
+            major: number;
+            minor: number;
+            patch: number;
+            versionString: string;
+            semanticVersion: string;
+            prerelease?: string;
+            buildMeta?: string;
+          }
+      > => {
         const exec = await this.run('node -v', [], { logging: false }).catch(() => {});
         if (!exec) {
           logger.debug(`Node.js not installed`);
