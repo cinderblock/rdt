@@ -1,5 +1,9 @@
 # Change log
 
+## v0.6.4 (2024-06-02)
+
+- No esm
+
 ## v0.6.3 (2024-06-02)
 
 - Be less verbose in file watcher initialization

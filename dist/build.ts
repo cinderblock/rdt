@@ -123,7 +123,7 @@ async function readme({ distDir, watch }: FullOptions) {
 }
 
 // Not really tested
-const outputESM = true;
+const outputESM = false;
 
 async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
   const plugins: esbuild.Plugin[] = [];
