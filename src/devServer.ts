@@ -2,8 +2,10 @@ import { Target } from './config.js';
 import esbuild from 'esbuild';
 import logger from './log.js';
 import { createServer } from 'http';
-import { createProxyServer } from 'http-proxy';
+import httpProxy from 'http-proxy';
 import { Remote } from './remote.js';
+
+const { createProxyServer } = httpProxy;
 
 export async function doDevServer(ds: Target['devServer'], rdt: Remote) {
   if (!ds) return;

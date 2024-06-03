@@ -1,5 +1,9 @@
 # Change log
 
+## v0.6.5 (2024-06-02)
+
+- No, yes esm. But fix import for commonjs dependency.
+
 ## v0.6.4 (2024-06-02)
 
 - No esm

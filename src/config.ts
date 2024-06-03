@@ -117,9 +117,22 @@ export async function config(): Promise<Config> {
 
   logger.silly(`Loading config from ${path}...`);
 
-  const {
-    default: { version, defaultTarget, targets },
-  } = await import(path);
+  let imp = await import(path);
+
+  if (imp.default) {
+    logger.silly('Default export found. Using it as the config object');
+    imp = imp.default;
+  }
+
+  if (typeof imp !== 'object' || imp === null) {
+    logger.error('Invalid config file. Expected an object');
+    JSON.stringify(imp, null, 2)
+      .split('\n')
+      .forEach(line => logger.error(line));
+    throw new Error('Invalid config file. Expected an object');
+  }
+
+  const { version, defaultTarget, targets } = imp;
   // TODO: Check more directories?
 
   logger.debug('Config loaded');
