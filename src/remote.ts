@@ -73,7 +73,7 @@ export class Remote {
 
         new Server(async incoming => {
           // Wait for the SSH connection to be ready
-          await new Promise(resolve => connection.once('ready', resolve));
+          await new Promise<void>(resolve => connection.once('ready', resolve));
 
           logger.info(`Forwarding port ${localPort} to ${target}:${port} for ${incoming.remoteAddress}`);
 
