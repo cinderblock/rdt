@@ -145,7 +145,7 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
 
   const buildOpts: esbuild.BuildOptions = {
     platform: 'node',
-    target: 'node18',
+    target: 'node20',
     format: outputESM ? 'esm' : 'cjs',
     sourcemap: true,
     sourcesContent: false,
