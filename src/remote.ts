@@ -373,6 +373,26 @@ export class Remote {
         return true;
       },
 
+      ensureFileIsLink: async (path: string, target: string) => {
+        logger.debug(`ensureFileIsLink: ${path} -> ${target}`);
+        if (!path) throw new Error(`No path specified`);
+        if (!target) throw new Error(`No target specified`);
+
+        const sftp = await this.sftp;
+
+        const current = await promisify(sftp.readlink.bind(sftp))(path).catch(() => null);
+
+        if (current === target) return false;
+
+        await this.fs.mkdirFor(path);
+
+        logger.debug(`creating link: ${path} -> ${target}`);
+
+        await promisify(sftp.symlink.bind(sftp))(target, path);
+
+        return true;
+      },
+
       readFile: async (path: string) => {
         logger.silly(`readFile: ${path}`);
         return new Promise<Buffer | null>(async resolve => {
