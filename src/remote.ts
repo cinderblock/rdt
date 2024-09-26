@@ -559,7 +559,7 @@ export class Remote {
     opts: Partial<{
       sudo: boolean;
       discardOutput: boolean;
-      logging: boolean;
+      logging: boolean | 'errRedirect';
       lineHandler: (line: string, err: boolean) => void;
       resolveError: boolean;
       workingDirectory: string;
@@ -630,7 +630,7 @@ export class Remote {
             const line = stderrBuffer.slice(0, i).trimEnd();
             stderrBuffer = stderrBuffer.slice(i + 1);
             opts.lineHandler?.(line, true);
-            log?.error(line);
+            if (log) (opts.logging === 'errRedirect' ? log.info : log.error)(line);
           }
         }
       });
