@@ -266,22 +266,63 @@ export class Remote {
           buildMeta,
         };
       },
-      install: async () => {
-        const version = await this.node.getVersion();
-
-        if (version) {
-          logger.debug(`Node.js already installed: ${version.versionString}`);
-          return;
-        }
-
+      install: async (major = 22) => {
         if (await this.platform.isARM6()) {
           logger.silly('ARM6 detected, installing Node.js from unofficial builds');
-          await this.node.installUnofficial();
-        } else {
-          // TODO: setup node apt repo
-          logger.silly('Installing Node.js from apt');
-          await this.apt.install(['nodejs']);
+          return this.node.installUnofficial();
         }
+
+        // const key = await fetch('https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key').then(r => r.text());
+        // const gpg = spawn('gpg --dearmor', { input: key });
+        const gpg = Buffer.from(
+          [
+            'mQENBFdDN1ABCADaNd/I3j3tn40deQNgz7hB2NvT+syXe6k4ZmdiEcOfBvFrkS8BhNS67t93etHs',
+            'xEy7E0qwsZH32bKazMqe9zDwoa3aVImryjh6SHC9lMtW27JPHFeMSrkt9YmH1WMwWcRO6eSY9B3P',
+            'pazquhnvbammLuUojXRIxkDroy6Fw4UKmUNSRr329Ej87jRoR1B2/57Kfp2Y4+vFGGzSvh3AFQpB',
+            'Hq51qsNHALU6+8PjLfIt+5TPvaWRTB+kAZnQZkaIQM2nr1n3oj6ak2RATY/+kjLizgFWzgEfbCrb',
+            'syq68UoY5FPBnu4ZE3iDZpaIqwKr0seUC7iA1xM5eHi5kty1oB7HABEBAAG0Ik5Tb2xpZCA8bnNv',
+            'bGlkLWdwZ0Bub2Rlc291cmNlLmNvbT6JATgEEwECACIFAldDN1ACGwMGCwkIBwMCBhUIAgkKCwQW',
+            'AgMBAh4BAheAAAoJEC9ZtfmbG+C0y7wH/i4xnab36dtrYW7RZwL8i6ScNjMx4j9+U1kr/F6YtqWd',
+            '+JwCbBdar5zRghxPcYEq/qf7MbgAYcs1eSOuTOb7n7+oxUwdH2iCtHhKh3Jr2mRw1ks7BbFZPB5K',
+            'mkxHaEBfLT4d+I91ZuUdPXJ+0SXs9gzkDbz65Uhoz3W03aiF8HeL5JNARZFMbHHNVL05U1sTGTCO',
+            'tu+1c/33f3TulQ/XZ3Y4hwGCpLe0Tv7g7Lp3iLMZMWYPEa0a7S4u8he5IEJQLd8bE8jltcQvrdr3',
+            'Fm8kI2JgBJmUmX4PSfhuTCFaR/yeCt3UoW883bs9LfbTzIx9DJGpRIu8Y0IL3b4sj/GoZVq5AQ0E',
+            'V0M3UAEIAKrTaC62ayzqOIPa7nS90BHHck4Z33a2tZF/uof38xNOiyWGhT8uJeFoTTHn5SQq5Fty',
+            'u4K3K2fbbpuu/APQF05AaljzVkDGNMW4pSkgOasdysj831cussrHX2RYS22wg80k6C/Hwmh5F45f',
+            'aEuNxsV+bPx7oPUrt5n6GMx84vEP3i1+FDBi0pt/B/QnDFBXki1BGvJ35f5NwDefK8VaInxXP3ZN',
+            '/WIbtn5dqxppkV/YkO7GiJlpJlju9rf3kKUIQzKQWxFsbCAPIHoWv7rH9RSxgDithXtG6Yg5R1ae',
+            'BbJaPNXL9wpJYBJbiMjkAFaz4B95FOqZm3r7oHugiCGsHX0AEQEAAYkBHwQYAQIACQUCV0M3UAIb',
+            'DAAKCRAvWbX5mxvgtE/OB/0VN88DR3Y3fuqy7lq/dthkn7Dqm9YXdorZl3L152eEIF882aG8FE3q',
+            'ZdaLGjQO4oShAyNWmRfSGuoH0XERXAI9n0r8m4mDMxE6rtP7tHety/5M8x3CTyuMgx5GLDaEUvBu',
+            'snTD+/v/fBMwRK/cZ9du5PSG4R50rtst+oYyC2aox4I2SgjtF/cY7bECsZDplzatN3gv34PkcdIg',
+            '8SLHAVlL4N5tzumDeizRspcSyoy2K2+hwKU4C4+dekLLTg8rjnRROvplV2KtaEk6rxKtIRFDCoQn',
+            'g8wfJuIMrDNKvqZwFRGt7cbvW5MCnuH8MhItOl9Uxp1wHp6gtav/h8Gp6MBa',
+          ].join(''),
+          'base64',
+        );
+
+        const keyFile = '/usr/share/keyrings/nodesource.gpg';
+        const sourcesList = '/etc/apt/sources.list.d/nodesource.list';
+        await this.fs.ensureFileIs(keyFile, gpg, { sudo: true });
+
+        const arch = 'amd64'; // TODO: detect arch
+
+        await this.fs.ensureFileIs(
+          sourcesList,
+          `deb [arch=${arch} signed-by=${keyFile}] https://deb.nodesource.com/node_${major}.x nodistro main`,
+          { sudo: true },
+        );
+
+        await this.fs.ensureFileIs(
+          '/etc/apt/preferences.d/nodejs',
+          'Package: nodejs\nPin: origin deb.nodesource.com\nPin-Priority: 600\n',
+          { sudo: true },
+        );
+
+        await this.apt.update();
+
+        logger.silly('Installing Node.js from apt');
+        await this.apt.install(['nodejs', 'npm']);
       },
       installUnofficial: async () => {
         const versions = await getUnofficialBuilds();
