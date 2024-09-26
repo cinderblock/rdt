@@ -238,10 +238,11 @@ export async function rdt(targetName: string, targetConfig: Target) {
       files.map(async (filePath, i) => {
         const localPath = typeof filePath == 'string' ? filePath : filePath.relative();
 
-        if (i < 10) {
+        const limit = 10;
+        if (i < limit) {
           logger.debug(`Watching ${localPath}`);
-        } else if (i == 10) {
-          logger.debug(`... (${files.length - 10} more files)`);
+        } else if (i == limit) {
+          logger.debug(`... (${files.length - limit} more files)`);
         }
 
         // TODO: debounce file changes
