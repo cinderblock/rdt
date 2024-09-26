@@ -4,6 +4,7 @@ import esMain from 'es-main';
 import { join } from 'path';
 import { dtsPlugin } from 'esbuild-plugin-d.ts';
 import { buildLogger as logger } from '../src/log.js';
+import { htmlPlugin } from '@craftamap/esbuild-plugin-html';
 
 function forceExit() {
   // TODO: why does setting this to 1 make it trigger?
@@ -110,7 +111,8 @@ export async function main(options: MainOptions) {
     // TODO: License
     // TODO: Changelog
 
-    build(options),
+    buildNode(options),
+    buildBrowser(options),
   ]);
 }
 
@@ -125,7 +127,7 @@ async function readme({ distDir, watch }: FullOptions) {
 // Not really tested
 const outputESM = true;
 
-async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
+async function buildNode({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
   const plugins: esbuild.Plugin[] = [];
   const watchPlugin: esbuild.Plugin = {
     name: 'end Event Plugin',
@@ -175,6 +177,88 @@ async function build({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
 
   // CTRL-C
   await new Promise<void>(resolve => process.once('SIGINT', resolve));
+  // Unfortunately no good solution for Windows with: "Terminate batch job (Y/N)?"
+
+  logger.info('Stopping watch...');
+
+  await ctx.dispose().catch(() => {
+    logger.warn('Failed to dispose esbuild context');
+  });
+}
+
+async function buildBrowser({ distDir: outdir, watch }: FullOptions) {
+  const uiSrcDir = join('src', 'StatusServerUI');
+  const entryPoints = [join(uiSrcDir, 'index.tsx')];
+  outdir = join(outdir, 'statusUI');
+
+  logger.debug(`Building browser for ${entryPoints[0]}`);
+
+  const plugins: esbuild.Plugin[] = [
+    htmlPlugin({
+      files: [
+        {
+          // relative to outdir
+          filename: '../StatusUI.html',
+
+          title: 'RDT Status',
+          scriptLoading: 'module',
+          inline: true,
+
+          // https://github.com/craftamap/esbuild-plugin-html/issues/63
+          entryPoints: process.platform == 'win32' ? entryPoints.map(e => e.replaceAll('\\', '/')) : entryPoints,
+          // favicon: join(uiSrcDir, 'favicon.ico'),
+        },
+      ],
+    }),
+
+    {
+      // https://github.com/craftamap/esbuild-plugin-html/issues/64
+      name: 'Cleanup Plugin',
+      setup(build) {
+        build.onEnd(async res => {
+          logger.debug('Cleaning up...');
+          // await Promise.all(
+          //   Object.entries(res.metafile?.outputs ?? {}).map(([file, info]) =>
+          //     unlink(file).catch(e => logger.warn(`Failed to clean up ${file}: ${e.message}`)),
+          //   ),
+          // );
+          await rm(outdir, { recursive: true }).catch(e => logger.warn(`Failed to clean up: ${e.message}`));
+        });
+      },
+    },
+  ];
+
+  const buildOpts: esbuild.BuildOptions = {
+    platform: 'browser',
+    target: 'es2020',
+    format: 'esm',
+    sourcemap: 'inline',
+    sourcesContent: false,
+    bundle: true,
+    entryPoints,
+
+    plugins,
+    metafile: true,
+    outdir,
+
+    // outfile: join(outdir, 'statusUI.js'),
+  };
+
+  if (!watch) {
+    const b = esbuild.build(buildOpts);
+    b.then(() => logger.silly('Browser build finished'));
+    return b;
+  }
+
+  const ctx = await esbuild.context(buildOpts);
+  await ctx.watch({});
+  logger.info('Watching for browser changes... (Press Ctrl-C to exit)');
+
+  // CTRL-C
+  await new Promise<void>(resolve => {
+    process.once('SIGINT', resolve);
+    process.stdin.on('end', resolve);
+  });
   // Unfortunately no good solution for Windows with: "Terminate batch job (Y/N)?"
 
   logger.info('Stopping watch...');
