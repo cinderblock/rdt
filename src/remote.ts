@@ -336,22 +336,28 @@ export class Remote {
       /**
        * @return true if the file was changed
        */
-      ensureFileIs: async (path: string, content: string | null, opts: { sudo?: boolean } = {}) => {
+      ensureFileIs: async (path: string, content: Buffer | string | null, opts: { sudo?: boolean } = {}) => {
         // Check if file exists and has the correct content. If not, create it (and create the directory if needed).
         logger.debug(`ensureFileIs: ${path}`);
-
-        const sftp = await this.sftp;
-
-        const current = await this.fs.readFile(path).then(b => b?.toString() ?? null);
-
-        if (current === content) return false;
 
         if (content === null) {
           await this.fs.unlink(path);
           return true;
         }
 
-        await this.fs.mkdirFor(path);
+        const currentBuff = await this.fs.readFile(path);
+
+        if (currentBuff) {
+          if (typeof content === 'string') {
+            const current = currentBuff?.toString() ?? null;
+
+            if (current === content) return false;
+          } else {
+            if (currentBuff?.equals(content)) return false;
+          }
+        } else {
+          await this.fs.mkdirFor(path);
+        }
 
         logger.debug(`writing file: ${path}`);
 
