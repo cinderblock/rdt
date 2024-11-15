@@ -56,7 +56,7 @@ export const targets: Targets = {
         logger.info(`deployed: ${targetName}`);
       },
     },
-    devServer: 'src/ui/index.ts',
+    // devServer: 'src/ui/index.ts', // File must exist
   },
 };
 ```
