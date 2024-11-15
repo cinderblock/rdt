@@ -74,6 +74,7 @@ Use `npx` or directly in `package.json` scripts without `npx`:
 ```json
 {
   "name": "my-project",
+  "type": "module",
   "scripts": {
     "dev": "rdt dev"
   },
