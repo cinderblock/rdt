@@ -65,14 +65,14 @@ export async function rdtArgs(...args: string[]): Promise<[string, Target]> {
     throw new Error('No config loaded');
   }
 
-  const { targets } = conf;
+  const { targets, defaultTarget } = conf;
 
   if (!targets) throw new Error('No targets defined');
 
   logger.debug('Targets defined!');
 
   // Select the first target if none is specified in the cli arguments
-  const selected = args[0] || Object.keys(targets)[0];
+  const selected = args[0] || defaultTarget || Object.keys(targets)[0];
 
   if (!selected) {
     throw new Error('No targets defined or selected');
