@@ -30,10 +30,14 @@ Create a file `rdt.ts` in the root of your project that exports a `targets` obje
 ```ts
 import { Targets, logger } from 'rdt';
 
-export const defaultTarget = 'myPi';
+// export const defaultTarget = 'myPi'; // Defaults to the first target
 
 export const targets: Targets = {
   myPi: {
+    // remote: {
+    //   host: 'myPi', // Defaults to target name
+    //   username: 'pi', // Default
+    // },
     handler: {
       async onConnected({ connection, targetName, targetConfig }) {
         logger.info(`connected: ${targetName}`);
