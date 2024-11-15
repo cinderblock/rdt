@@ -13,7 +13,7 @@ const logger = winston.createLogger({
   // ],
 });
 
-export const labels = {
+export const labels: { [name: string]: string } = {
   build: '📦',
   // Not sure why `🖥️` needs an extra whitespace to align with others...
   rdt: '🖥️ ',
@@ -21,6 +21,10 @@ export const labels = {
   systemd: '🔧',
   application: '🏃',
 };
+
+export function setLabelShorthand(name: string, label: string) {
+  labels[name] = label;
+}
 
 export function rdtLogFormat() {
   return winston.format(info => {
