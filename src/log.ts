@@ -46,13 +46,33 @@ export function rdtLogFormat() {
   })();
 }
 
+const terminalLogger = new winston.transports.Console({
+  format: winston.format.combine(rdtLogFormat(), winston.format.colorize(), winston.format.simple()),
+});
+
+export function addLogTransport(transport: winston.transport) {
+  logger.add(transport);
+}
+
+export function removeLogTransport(transport: winston.transport) {
+  try {
+    logger.remove(transport);
+  } catch (e) {
+    logger.error('Failed to remove terminal logger');
+    logger.error(e);
+  }
+}
+
+export function enableTerminalLogger() {
+  addLogTransport(terminalLogger);
+}
+export function disableTerminalLogger() {
+  removeLogTransport(terminalLogger);
+}
+
 // Not sure if we'll use `NODE_ENV` long term but for now...
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(rdtLogFormat(), winston.format.colorize(), winston.format.simple()),
-    }),
-  );
+  enableTerminalLogger();
 }
 
 export default logger.child({ label: 'rdt' });
