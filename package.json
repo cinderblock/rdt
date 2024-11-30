@@ -1,7 +1,7 @@
 {
   "name": "@cinderblock/rdt",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "A developer tool for working on lightweight remote systems.",
   "bin": {
     "rdt": ".dist/rdt.js"
@@ -13,7 +13,11 @@
     "CHANGES.md",
     ".dist/*"
   ],
+  "workspaces": [
+    "src/UI"
+  ],
   "scripts": {
+    "update": "npx npm-check-updates -u && npm install",
     "build": "tsx dist/build.ts",
     "build-watch": "tsx dist/build.ts --watch",
     "watch": "npm run build-watch",
@@ -38,25 +42,43 @@
     "url": "https://github.com/cinderblock/rdt/issues"
   },
   "homepage": "https://github.com/cinderblock/rdt#readme",
+  "_moduleAliases": {
+    "punycode": "punycode/"
+  },
   "dependencies": {
+    "@floating-ui/react": "^0.26.28",
+    "@mui/base": "^5.0.0-beta.62",
     "@types/ssh2": "^1.15.1",
     "@types/ssh2-streams": "^0.1.12",
     "es-main": "^1.3.0",
     "esbuild": "^0.24.0",
     "esbuild-register": "^3.6.0",
+    "finalhandler": "^1.3.1",
     "glob": "^11.0.0",
     "http-proxy": "^1.18.1",
     "node": "^22.9.0",
+    "serve-static": "^1.16.2",
     "ssh2": "^1.16.0",
-    "tsx": "^4.19.1",
-    "winston": "^3.14.2"
+    "tsx": "^4.19.2",
+    "winston": "^3.17.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@craftamap/esbuild-plugin-html": "^0.8.0",
+    "@hyrious/esbuild-plugin-commonjs": "^0.2.4",
+    "@types/finalhandler": "^1.2.3",
     "@types/http-proxy": "^1.17.15",
-    "@types/node": "^22.7.2",
-    "esbuild-plugin-d.ts": "^1.3.0",
-    "eslint": "^9.11.1",
-    "prettier": "^3.3.3"
+    "@types/node": "^22.9.1",
+    "@types/serve-static": "^1.15.7",
+    "@types/ws": "^8.5.13",
+    "esbuild-plugin-d.ts": "^1.3.1",
+    "eslint": "^9.15.0",
+    "module-alias": "^2.2.3",
+    "override-require": "^1.1.1",
+    "prettier": "^3.3.3",
+    "punycode": "^2.3.1"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8"
   }
 }

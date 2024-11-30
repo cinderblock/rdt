@@ -1,3 +1,13 @@
+// Fix bugs about deprecated punycode module
+// import overrideRequire from 'override-require';
+// overrideRequire((request, parent) => {
+//   if (request === 'punycode') {
+//     console.log('punycode is deprecated. Replacing with punycode/');
+//     request += '/';
+//   }
+//   return require(request); // Default behavior
+// });
+
 import { writeFile, mkdir, copyFile, rm, readdir } from 'fs/promises';
 import esbuild from 'esbuild';
 import esMain from 'es-main';
@@ -5,6 +15,7 @@ import { join } from 'path';
 import { dtsPlugin } from 'esbuild-plugin-d.ts';
 import { buildLogger as logger } from '../src/log.js';
 import { htmlPlugin } from '@craftamap/esbuild-plugin-html';
+import { commonjs } from '@hyrious/esbuild-plugin-commonjs';
 
 function forceExit() {
   // TODO: why does setting this to 1 make it trigger?
@@ -128,7 +139,7 @@ async function readme({ distDir, watch }: FullOptions) {
 const outputESM = true;
 
 async function buildNode({ distDir: outDir, skipDts, watch, pkg }: FullOptions) {
-  const plugins: esbuild.Plugin[] = [];
+  const plugins: esbuild.Plugin[] = [commonjs()];
   const watchPlugin: esbuild.Plugin = {
     name: 'end Event Plugin',
     setup(build) {
@@ -172,11 +183,14 @@ async function buildNode({ distDir: outDir, skipDts, watch, pkg }: FullOptions) 
   }
 
   const ctx = await esbuild.context(buildOpts);
-  await ctx.watch({});
+  await ctx.watch();
   logger.info('Watching for changes... (Press Ctrl-C to exit)');
 
   // CTRL-C
-  await new Promise<void>(resolve => process.once('SIGINT', resolve));
+  await new Promise<void>(resolve => {
+    process.once('SIGINT', resolve);
+    process.stdin.once('end', resolve);
+  });
   // Unfortunately no good solution for Windows with: "Terminate batch job (Y/N)?"
 
   logger.info('Stopping watch...');
@@ -187,9 +201,16 @@ async function buildNode({ distDir: outDir, skipDts, watch, pkg }: FullOptions) 
 }
 
 async function buildBrowser({ distDir: outdir, watch }: FullOptions) {
-  const uiSrcDir = join('src', 'StatusServerUI');
-  const entryPoints = [join(uiSrcDir, 'index.tsx')];
-  outdir = join(outdir, 'statusUI');
+  const uiSrcDir = join('src', 'UI');
+
+  const inline = false;
+
+  const entryPoint = join(uiSrcDir, 'index.tsx');
+  const favicon = join(uiSrcDir, 'favicon.ico');
+
+  outdir = join(outdir, 'UI');
+
+  const entryPoints = [entryPoint];
 
   logger.debug(`Building browser for ${entryPoints[0]}`);
 
@@ -197,16 +218,15 @@ async function buildBrowser({ distDir: outdir, watch }: FullOptions) {
     htmlPlugin({
       files: [
         {
-          // relative to outdir
-          filename: '../StatusUI.html',
+          filename: 'index.html',
 
           title: 'RDT Status',
+          // favicon,
           scriptLoading: 'module',
-          inline: true,
+          inline,
 
           // https://github.com/craftamap/esbuild-plugin-html/issues/63
           entryPoints: process.platform == 'win32' ? entryPoints.map(e => e.replaceAll('\\', '/')) : entryPoints,
-          // favicon: join(uiSrcDir, 'favicon.ico'),
         },
       ],
     }),
@@ -215,6 +235,7 @@ async function buildBrowser({ distDir: outdir, watch }: FullOptions) {
       // https://github.com/craftamap/esbuild-plugin-html/issues/64
       name: 'Cleanup Plugin',
       setup(build) {
+        if (!inline) return;
         build.onEnd(async res => {
           logger.debug('Cleaning up...');
           // await Promise.all(
@@ -229,13 +250,15 @@ async function buildBrowser({ distDir: outdir, watch }: FullOptions) {
   ];
 
   const buildOpts: esbuild.BuildOptions = {
-    platform: 'browser',
-    target: 'es2020',
-    format: 'esm',
     sourcemap: 'inline',
     sourcesContent: false,
     bundle: true,
     entryPoints,
+
+    // Hack missing env for Tamagui
+    // define: {
+    //   process: '{env:{}}',
+    // },
 
     plugins,
     metafile: true,
@@ -251,13 +274,13 @@ async function buildBrowser({ distDir: outdir, watch }: FullOptions) {
   }
 
   const ctx = await esbuild.context(buildOpts);
-  await ctx.watch({});
+  await ctx.watch();
   logger.info('Watching for browser changes... (Press Ctrl-C to exit)');
 
   // CTRL-C
   await new Promise<void>(resolve => {
     process.once('SIGINT', resolve);
-    process.stdin.on('end', resolve);
+    process.stdin.once('end', resolve);
   });
   // Unfortunately no good solution for Windows with: "Terminate batch job (Y/N)?"
 

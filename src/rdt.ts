@@ -14,14 +14,22 @@ import { doDevServer } from './devServer.js';
 import { sleep } from './util/sleep.js';
 import esMain from 'es-main';
 import { boot } from './run.js';
+import { doRDTServer } from './rdtServer.js';
 
 export { BuildAndDeploy, BuildResult } from './BuildAndDeployHandler.js';
 export { Config, Target, Targets } from './config.js';
 export { userLogger as logger } from './log.js';
 export { SerialPortMode } from './remote.js';
 
+let rdtServer: ReturnType<typeof doRDTServer> | undefined;
 export async function rdt(targetName: string, targetConfig: Target) {
   logger.info(`RDT Target ${targetName} starting`);
+
+  if (!rdtServer) {
+    rdtServer = doRDTServer();
+  }
+
+  // TODO: notify server of new target
 
   /**
    * Pseudo-code:
